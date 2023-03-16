@@ -1,0 +1,19 @@
+apply plugin: "java-library"
+
+sourceCompatibility = 1.8
+sourceSets.main.java.srcDirs = [ "src/" ]
+sourceSets.main.resources.srcDirs = ["../assets"]
+
+project.ext.mainClassName = "com.gempukku.gdx.assistant.test.TestLauncher"
+project.ext.assetsDir = new File("../assets")
+
+dependencies {
+    implementation project(":core")
+    implementation project(":gdx-plugins")
+    implementation project(":gdx-assistant-plugin")
+
+    api "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    api "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+}
+
+eclipse.project.name = appName + "-test"

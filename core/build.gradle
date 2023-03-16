@@ -1,0 +1,16 @@
+apply plugin: "java-library"
+
+sourceCompatibility = 1.8
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+sourceSets.main.java.srcDirs = [ "src/" ]
+
+dependencies {
+    implementation project(":gdx-plugins")
+    implementation project(":gdx-assistant-plugin")
+
+    api "com.badlogicgames.gdx:gdx:$gdxVersion"
+    api "com.kotcrab.vis:vis-ui:1.4.11"
+}
+
+eclipse.project.name = appName + "-core"

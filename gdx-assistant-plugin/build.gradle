@@ -1,0 +1,13 @@
+apply plugin: "java-library"
+
+sourceCompatibility = 1.8
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+sourceSets.main.java.srcDirs = [ "src/" ]
+
+dependencies {
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation project(":gdx-plugins")
+}
+
+eclipse.project.name = "gdx-assistant-plugin"
