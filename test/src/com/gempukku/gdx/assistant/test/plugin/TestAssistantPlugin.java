@@ -4,8 +4,10 @@ import com.badlogic.gdx.utils.JsonValue;
 import com.gempukku.gdx.assistant.plugin.AssistantApplication;
 import com.gempukku.gdx.assistant.plugin.AssistantPlugin;
 import com.gempukku.gdx.assistant.plugin.AssistantPluginProject;
+import com.gempukku.gdx.assistant.plugin.AssistantPluginTab;
 import com.gempukku.gdx.plugins.PluginEnvironment;
 import com.gempukku.gdx.plugins.PluginVersion;
+import com.kotcrab.vis.ui.widget.VisTable;
 
 public class TestAssistantPlugin implements AssistantPlugin {
     private AssistantApplication application;
@@ -58,6 +60,25 @@ public class TestAssistantPlugin implements AssistantPlugin {
                     @Override
                     public void run() {
                         System.out.println("Sub-test2 pressed");
+                    }
+                });
+
+        addTestTab("Test1");
+        addTestTab("Test2");
+        addTestTab("Test3");
+    }
+
+    private void addTestTab(String title) {
+        application.addTab(title, new VisTable(),
+                new AssistantPluginTab() {
+                    @Override
+                    public void setActive(boolean active) {
+                        System.out.println("Tab "+ title +" active: "+active);
+                    }
+
+                    @Override
+                    public void closed() {
+                        System.out.println("Tab "+ title +" closed");
                     }
                 });
     }

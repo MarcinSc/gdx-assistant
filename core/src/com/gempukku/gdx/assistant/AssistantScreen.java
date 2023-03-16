@@ -4,14 +4,16 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.*;
 import com.gempukku.gdx.assistant.plugin.AssistantApplication;
 import com.gempukku.gdx.assistant.plugin.AssistantPlugin;
+import com.gempukku.gdx.assistant.plugin.AssistantPluginTab;
+import com.gempukku.gdx.assistant.plugin.AssistantTab;
 import com.gempukku.gdx.plugins.PluginsProvider;
 import com.kotcrab.vis.ui.util.OsUtils;
 import com.kotcrab.vis.ui.util.dialog.Dialogs;
@@ -50,6 +52,9 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
     private MenuItem closeMenu;
     private MenuBar menuBar;
 
+    private boolean initialized = false;
+    private AssistantTabFromPlugin lastTab = null;
+
     public AssistantScreen(PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider, Skin skin) {
         this.pluginsProvider = pluginsProvider;
         this.skin = skin;
@@ -65,6 +70,11 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
                     @Override
                     public void switchedTab(Tab tab) {
                         switchedToTab(tab);
+                    }
+
+                    @Override
+                    public void removedTab(Tab tab) {
+                        removedPluginTab(tab);
                     }
 
                     @Override
@@ -97,6 +107,9 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
                 });
     }
 
+    public void setInitialized() {
+        initialized = true;
+    }
 
     private MenuBar createMenuBar() {
         menuBar = new MenuBar();
@@ -306,6 +319,8 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
 
     @Override
     public void addMenu(String menuPath, String name, Runnable runnable) {
+        assertNotInitialized();
+
         String[] menuPathElements = menuPath.split("/");
         if (menuPathElements.length < 1)
             throw new IllegalArgumentException("Menu path has to have at least 2 elements separated by '/'");
@@ -333,6 +348,8 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
 
     @Override
     public void addMenuSeparator(String menuPath) {
+        assertNotInitialized();
+
         String[] menuPathElements = menuPath.split("/");
         if (menuPathElements.length < 1)
             throw new IllegalArgumentException("Menu path has to have at least 2 elements separated by '/'");
@@ -346,6 +363,37 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
             PopupMenu popupMenu = findOrCreatePopupMenu(menu, menuPathElements, 1);
             popupMenu.addSeparator();
         }
+    }
+
+    @Override
+    public AssistantTab addTab(String title, Table content, AssistantPluginTab tab) {
+        AssistantTabFromPlugin resultTab = new AssistantTabFromPlugin(title, content, tab);
+        tabbedPane.add(resultTab);
+        return new AssistantTab() {
+            @Override
+            public void setTitle(String title) {
+                resultTab.setTitle(title);
+                tabbedPane.updateTabTitle(resultTab);
+            }
+
+            @Override
+            public void setDirty(boolean dirty) {
+                resultTab.setDirty(dirty);
+                tabbedPane.updateTabTitle(resultTab);
+            }
+
+            @Override
+            public void closeTab() {
+                if (lastTab == resultTab)
+                    lastTab = null;
+                tabbedPane.remove(resultTab);
+            }
+        };
+    }
+
+    private void assertNotInitialized() {
+        if (initialized)
+            throw new GdxRuntimeException("Can't modify menus after the application has been initialized");
     }
 
     private Menu findOrCreateMenu(String name) {
@@ -489,11 +537,29 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
     }
 
     private void switchedToTab(Tab tab) {
+        if (lastTab != null) {
+            lastTab.getTab().setActive(false);
+        }
         insideTable.clearChildren();
         insideTable.add(tab.getContentTable()).grow().row();
+        AssistantTabFromPlugin pluginTab = (AssistantTabFromPlugin) tab;
+        pluginTab.getTab().setActive(true);
+
+        lastTab = pluginTab;
+    }
+
+    private void removedPluginTab(Tab tab) {
+        AssistantTabFromPlugin pluginTab = (AssistantTabFromPlugin) tab;
+        pluginTab.getTab().closed();
+
+        if (lastTab == pluginTab)
+            lastTab = null;
     }
 
     private void allTabsRemoved() {
-
+        if (lastTab != null) {
+            lastTab.getTab().setActive(false);
+            lastTab = null;
+        }
     }
 }

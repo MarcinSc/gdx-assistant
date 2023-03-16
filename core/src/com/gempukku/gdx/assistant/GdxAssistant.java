@@ -59,6 +59,8 @@ public class GdxAssistant extends ApplicationAdapter {
 		pluginRegistration = new PluginRegistration<>();
 		pluginRegistration.registerPlugins(pluginsProvider, assistantScreen);
 
+		assistantScreen.setInitialized();
+
 		Gdx.input.setInputProcessor(stage);
 	}
 
