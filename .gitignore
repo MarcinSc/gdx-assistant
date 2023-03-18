@@ -1,5 +1,6 @@
 ## Plugins
 /plugins/
+/desktop/plugins/
 
 ## Java
 *.class
