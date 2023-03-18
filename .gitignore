@@ -1,6 +1,6 @@
 ## Plugins
 /plugins/
-/desktop/plugins/
+/gdx-assistant-desktop/plugins/
 
 ## Java
 *.class
@@ -56,15 +56,13 @@ com_crashlytics_export_strings.xml
 
 /nbproject/private/
 /android/nbproject/private/
-/core/nbproject/private/
-/desktop/nbproject/private/
+/gdx-assistant-desktop/nbproject/private/
 /html/nbproject/private/
 /ios/nbproject/private/
 
 /build/
 /android/build/
-/core/build/
-/desktop/build/
+/gdx-assistant-desktop/build/
 /html/build/
 /ios/build/
 /gdx-assistant-plugin/build/
@@ -73,8 +71,7 @@ com_crashlytics_export_strings.xml
 
 /nbbuild/
 /android/nbbuild/
-/core/nbbuild/
-/desktop/nbbuild/
+/gdx-assistant-desktop/nbbuild/
 /html/nbbuild/
 /ios/nbbuild/
 /gdx-assistant-plugin/nbbuild/
@@ -83,8 +80,7 @@ com_crashlytics_export_strings.xml
 
 /dist/
 /android/dist/
-/core/dist/
-/desktop/dist/
+/gdx-assistant-desktop/dist/
 /html/dist/
 /ios/dist/
 /gdx-assistant-plugin/dist/
@@ -93,8 +89,7 @@ com_crashlytics_export_strings.xml
 
 /nbdist/
 /android/nbdist/
-/core/nbdist/
-/desktop/nbdist/
+/gdx-assistant-desktop/nbdist/
 /html/nbdist/
 /ios/nbdist/
 /gdx-assistant-plugin/nbdist/

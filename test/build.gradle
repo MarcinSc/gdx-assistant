@@ -8,7 +8,7 @@ project.ext.mainClassName = "com.gempukku.gdx.assistant.test.TestLauncher"
 project.ext.assetsDir = new File("../assets")
 
 dependencies {
-    implementation project(":core")
+    implementation project(":gdx-assistant-desktop")
     implementation project(":gdx-plugins")
     implementation project(":gdx-assistant-plugin")
 

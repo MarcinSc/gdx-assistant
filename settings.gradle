@@ -1,1 +1,1 @@
-include 'gdx-plugins', 'gdx-assistant-plugin', 'desktop', 'core', 'test'
+include 'gdx-plugins', 'gdx-assistant-plugin', 'gdx-assistant-desktop', 'test'

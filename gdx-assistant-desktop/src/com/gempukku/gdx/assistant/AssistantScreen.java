@@ -107,7 +107,6 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
                         return false;
                     }
                 });
-        System.out.println(getProjectFolder().file().getAbsolutePath());
     }
 
     @Override
