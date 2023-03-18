@@ -115,6 +115,11 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
         return new LocalFileHandleResolver().resolve(".").parent();
     }
 
+    @Override
+    public Skin getApplicationSkin() {
+        return skin;
+    }
+
     public void setInitialized() {
         initialized = true;
     }
