@@ -14,7 +14,7 @@ buildscript {
 allprojects {
     apply plugin: "eclipse"
 
-    version = '1.0'
+    version = "$gdxAssistantVersion"
     ext {
         appName = "Gdx Assistant"
         gdxVersion = '1.11.0'
