@@ -66,6 +66,9 @@ com_crashlytics_export_strings.xml
 /desktop/build/
 /html/build/
 /ios/build/
+/gdx-assistant-plugin/build/
+/gdx-plugins/build/
+/test/build/
 
 /nbbuild/
 /android/nbbuild/
@@ -73,6 +76,9 @@ com_crashlytics_export_strings.xml
 /desktop/nbbuild/
 /html/nbbuild/
 /ios/nbbuild/
+/gdx-assistant-plugin/nbbuild/
+/gdx-plugins/nbbuild/
+/test/nbbuild/
 
 /dist/
 /android/dist/
@@ -80,6 +86,9 @@ com_crashlytics_export_strings.xml
 /desktop/dist/
 /html/dist/
 /ios/dist/
+/gdx-assistant-plugin/dist/
+/gdx-plugins/dist/
+/test/dist/
 
 /nbdist/
 /android/nbdist/
@@ -87,6 +96,9 @@ com_crashlytics_export_strings.xml
 /desktop/nbdist/
 /html/nbdist/
 /ios/nbdist/
+/gdx-assistant-plugin/nbdist/
+/gdx-plugins/nbdist/
+/test/nbdist/
 
 nbactions.xml
 nb-configuration.xml
