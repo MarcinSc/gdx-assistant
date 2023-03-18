@@ -2,6 +2,7 @@ package com.gempukku.gdx.assistant;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.assets.loaders.resolvers.LocalFileHandleResolver;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -26,7 +27,6 @@ import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
@@ -54,6 +54,8 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
 
     private boolean initialized = false;
     private AssistantTabFromPlugin lastTab = null;
+
+    private ObjectMap<String, MenuItem> menuItems = new ObjectMap<>();
 
     public AssistantScreen(PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider, Skin skin) {
         this.pluginsProvider = pluginsProvider;
@@ -105,6 +107,12 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
                         return false;
                     }
                 });
+        System.out.println(getProjectFolder().file().getAbsolutePath());
+    }
+
+    @Override
+    public FileHandle getProjectFolder() {
+        return new LocalFileHandleResolver().resolve(".").parent();
     }
 
     public void setInitialized() {
@@ -192,36 +200,6 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
 
         return fileMenu;
     }
-//
-//    private Menu createEditMenu() {
-//        Menu editMenu = new Menu("Edit");
-//
-//        ChangeListener copyListener = new ChangeListener() {
-//            @Override
-//            public void changed(ChangeEvent event, Actor actor) {
-//                copy();
-//            }
-//        };
-//
-//        ChangeListener pasteListener = new ChangeListener() {
-//            @Override
-//            public void changed(ChangeEvent event, Actor actor) {
-//                paste();
-//            }
-//        };
-//
-//        MenuItem copy = new MenuItem("Copy");
-//        addControlShortcut(Input.Keys.C, copy, copyListener);
-//        copy.addListener(copyListener);
-//        editMenu.addItem(copy);
-//
-//        MenuItem paste = new MenuItem("Paste");
-//        addControlShortcut(Input.Keys.V, paste, pasteListener);
-//        paste.addListener(pasteListener);
-//        editMenu.addItem(paste);
-//
-//        return editMenu;
-//    }
 
     private void addControlShortcut(int key, final MenuItem menuItem, final ChangeListener listener) {
         menuItem.setShortcut(Input.Keys.CONTROL_LEFT, key);
@@ -319,8 +297,6 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
 
     @Override
     public void addMenu(String menuPath, String name, Runnable runnable) {
-        assertNotInitialized();
-
         String[] menuPathElements = menuPath.split("/");
         if (menuPathElements.length < 1)
             throw new IllegalArgumentException("Menu path has to have at least 2 elements separated by '/'");
@@ -338,6 +314,7 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
             MenuItem menuItem = new MenuItem(name);
             menuItem.addListener(menuListener);
             menu.addItem(menuItem);
+            menuItems.put(menuPath+"/"+name, menuItem);
         } else {
             PopupMenu popupMenu = findOrCreatePopupMenu(menu, menuPathElements, 1);
             MenuItem menuItem = new MenuItem(name);
@@ -348,8 +325,6 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
 
     @Override
     public void addMenuSeparator(String menuPath) {
-        assertNotInitialized();
-
         String[] menuPathElements = menuPath.split("/");
         if (menuPathElements.length < 1)
             throw new IllegalArgumentException("Menu path has to have at least 2 elements separated by '/'");
@@ -363,6 +338,17 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
             PopupMenu popupMenu = findOrCreatePopupMenu(menu, menuPathElements, 1);
             popupMenu.addSeparator();
         }
+    }
+
+    @Override
+    public void setMenuDisabled(String menuPath, String name, boolean disabled) {
+        String[] menuPathElements = menuPath.split("/");
+        if (menuPathElements.length < 1)
+            throw new IllegalArgumentException("Menu path has to have at least 2 elements separated by '/'");
+        if (menuPathElements[0].equals("File"))
+            throw new IllegalArgumentException("Can't use File element as a first element");
+
+        menuItems.get(menuPath+"/"+name).setDisabled(disabled);
     }
 
     @Override
@@ -391,14 +377,12 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
         };
     }
 
-    private void assertNotInitialized() {
-        if (initialized)
-            throw new GdxRuntimeException("Can't modify menus after the application has been initialized");
-    }
-
     private Menu findOrCreateMenu(String name) {
         Menu result = createdMenus.get(name);
         if (result == null) {
+            if (initialized)
+                throw new GdxRuntimeException("Can't create top-level menus after the application has been initialized");
+
             result = new Menu(name);
             menuBar.addMenu(result);
             createdMenus.put(name, result);
