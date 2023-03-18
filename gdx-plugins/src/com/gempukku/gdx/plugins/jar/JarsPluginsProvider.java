@@ -25,20 +25,20 @@ public class JarsPluginsProvider<T, U extends Plugin<T>> implements PluginsProvi
                     }
                 });
         if (jarFiles != null) {
+            ClassLoader classLoader = setupPluginClassLoader(jarFiles);
+
             for (File file : jarFiles) {
                 try (JarFile jarFile = new JarFile(file)) {
                     Manifest manifest = jarFile.getManifest();
                     if (manifest != null) {
                         String pluginClassName = manifest.getMainAttributes().getValue(classNameMainAttribute);
                         if (pluginClassName != null) {
-                            U plugin = (U) Class.forName(pluginClassName).newInstance();
+                            U plugin = (U) Class.forName(pluginClassName, true, classLoader).newInstance();
                             plugins.add(plugin);
                         }
                     }
                 }
             }
-
-            setupPluginClassLoader(jarFiles);
         }
     }
 
@@ -47,12 +47,13 @@ public class JarsPluginsProvider<T, U extends Plugin<T>> implements PluginsProvi
         return plugins;
     }
 
-    private void setupPluginClassLoader(File[] jarFiles) throws MalformedURLException {
+    private ClassLoader setupPluginClassLoader(File[] jarFiles) throws MalformedURLException {
         List<URL> pluginUrls = new ArrayList<>();
         for (File file : jarFiles) {
             pluginUrls.add(file.toURI().toURL());
         }
         URLClassLoader classLoader = URLClassLoader.newInstance(pluginUrls.toArray(new URL[0]), Thread.currentThread().getContextClassLoader());
         Thread.currentThread().setContextClassLoader(classLoader);
+        return classLoader;
     }
 }

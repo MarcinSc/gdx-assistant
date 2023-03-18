@@ -18,6 +18,23 @@ dependencies {
     api "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 }
 
+def assistantPlugins = [
+        "https://jitpack.io/com/github/MarcinSc/gdx-graph/gdx-graph-assistant/7368dc7/gdx-graph-assistant-7368dc7.jar"
+]
+
+build {
+    def folder = new File("plugins");
+    folder.mkdirs();
+
+    for (def assPlugin : assistantPlugins) {
+        def f = new File("plugins/"+assPlugin.substring(assPlugin.lastIndexOf("/")+1));
+        if (!f.exists()) {
+            println("Downloading plugin: "+assPlugin);
+            new URL(assPlugin).withInputStream { i -> f.withOutputStream { it << i } }
+        }
+    }
+}
+
 task run(dependsOn: classes, type: JavaExec) {
     mainClass = project.mainClassName
     classpath = sourceSets.main.runtimeClasspath
