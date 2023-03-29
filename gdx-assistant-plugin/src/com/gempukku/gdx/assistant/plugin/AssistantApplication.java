@@ -22,4 +22,6 @@ public interface AssistantApplication {
     boolean setPopupMenuDisabled(String mainMenu, String popupPath, String name, boolean disabled);
 
     AssistantTab addTab(String title, Table content, AssistantPluginTab tab);
+
+    void switchToTab(AssistantPluginTab tab);
 }

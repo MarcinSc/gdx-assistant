@@ -67,8 +67,6 @@ public class GdxAssistant extends ApplicationAdapter {
 					}
 				});
 
-		assistantScreen.setInitialized();
-
 		Gdx.input.setInputProcessor(stage);
 	}
 

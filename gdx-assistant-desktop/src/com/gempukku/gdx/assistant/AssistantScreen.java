@@ -45,17 +45,12 @@ public class AssistantScreen extends VisTable {
 
     private FileTypeFilter assistantProjectsFilter;
 
-    private ObjectMap<String, Menu> createdMenus = new ObjectMap<>();
-
     private MenuItem saveMenu;
     private MenuItem saveAsMenu;
     private MenuItem closeMenu;
     private MenuBar menuBar;
 
-    private boolean initialized = false;
     private AssistantTabFromPlugin lastTab = null;
-
-    private ObjectMap<String, MenuItem> menuItems = new ObjectMap<>();
 
     public AssistantScreen(PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider, Skin skin) {
         this.pluginsProvider = pluginsProvider;
@@ -117,14 +112,9 @@ public class AssistantScreen extends VisTable {
         return skin;
     }
 
-    public void setInitialized() {
-        initialized = true;
-    }
-
     private MenuBar createMenuBar() {
         menuBar = new MenuBar();
         menuBar.addMenu(createFileMenu());
-        //menuBar.addMenu(createEditMenu());
 
         return menuBar;
     }
@@ -320,6 +310,16 @@ public class AssistantScreen extends VisTable {
                 tabbedPane.remove(resultTab);
             }
         };
+    }
+
+    private void switchToTab(AssistantPluginTab tab) {
+        for (Tab tabbedPaneTab : tabbedPane.getTabs()) {
+            AssistantTabFromPlugin assistantTab = (AssistantTabFromPlugin) tabbedPaneTab;
+            if (assistantTab.getTab() == tab) {
+                tabbedPane.switchTab(assistantTab);
+                break;
+            }
+        }
     }
 
     public void processUpdate(float deltaTime) {
@@ -552,6 +552,11 @@ public class AssistantScreen extends VisTable {
             @Override
             public AssistantTab addTab(String title, Table content, AssistantPluginTab tab) {
                 return AssistantScreen.this.addTab(title, content, tab);
+            }
+
+            @Override
+            public void switchToTab(AssistantPluginTab tab) {
+                AssistantScreen.this.switchToTab(tab);
             }
         };
     }
