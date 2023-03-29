@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class PluginRegistration<T, U extends Plugin<T>> {
     private final List<U> registeredPlugins = new ArrayList<>();
 
-    public void registerPlugins(PluginsProvider<T, U> pluginsProvider, T pluggableApplication) {
+    public void registerPlugins(PluginsProvider<T, U> pluginsProvider, Function<U, T> pluginApplicationProvider) {
         Iterable<U> plugins = pluginsProvider.getPlugins();
 
         Map<String, U> filterLatestPlugins = filterLatestPlugins(plugins);
@@ -42,7 +43,7 @@ public class PluginRegistration<T, U extends Plugin<T>> {
         } while (changed);
 
         for (U value : chosenToRegister.values()) {
-            value.registerPlugin(pluggableApplication);
+            value.registerPlugin(pluginApplicationProvider.apply(value));
             registeredPlugins.add(value);
         }
     }

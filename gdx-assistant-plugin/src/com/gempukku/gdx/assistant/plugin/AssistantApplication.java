@@ -9,11 +9,17 @@ public interface AssistantApplication {
 
     Skin getApplicationSkin();
 
-    void addMenu(String menuPath, String name, Runnable runnable);
+    boolean addMainMenu(String name);
 
-    void addMenuSeparator(String menuPath);
+    boolean addPopupMenu(String mainMenu, String path, String name);
 
-    void setMenuDisabled(String menuPath, String name, boolean disabled);
+    boolean addMenuItem(String mainMenu, String popupPath, String name, Runnable runnable);
+
+    boolean addMenuSeparator(String mainMenu, String popupPath);
+
+    boolean setMenuItemDisabled(String mainMenu, String popupPath, String name, boolean disabled);
+
+    boolean setPopupMenuDisabled(String mainMenu, String popupPath, String name, boolean disabled);
 
     AssistantTab addTab(String title, Table content, AssistantPluginTab tab);
 }

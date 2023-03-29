@@ -30,7 +30,7 @@ import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-public class AssistantScreen extends VisTable implements AssistantApplication {
+public class AssistantScreen extends VisTable {
     private static final String projectFileExtension = "assp";
 
     private PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider;
@@ -109,13 +109,11 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
                 });
     }
 
-    @Override
-    public FileHandle getProjectFolder() {
+    private FileHandle getProjectFolder() {
         return new LocalFileHandleResolver().resolve(".").parent();
     }
 
-    @Override
-    public Skin getApplicationSkin() {
+    private Skin getApplicationSkin() {
         return skin;
     }
 
@@ -299,64 +297,7 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
         getStage().addActor(fileChooser.fadeIn());
     }
 
-    @Override
-    public void addMenu(String menuPath, String name, Runnable runnable) {
-        String[] menuPathElements = menuPath.split("/");
-        if (menuPathElements.length < 1)
-            throw new IllegalArgumentException("Menu path has to have at least 2 elements separated by '/'");
-        if (menuPathElements[0].equals("File"))
-            throw new IllegalArgumentException("Can't use File element as a first element");
-
-        Menu menu = findOrCreateMenu(menuPathElements[0]);
-        ChangeListener menuListener = new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                runnable.run();
-            }
-        };
-        if (menuPathElements.length == 1) {
-            MenuItem menuItem = new MenuItem(name);
-            menuItem.addListener(menuListener);
-            menu.addItem(menuItem);
-            menuItems.put(menuPath+"/"+name, menuItem);
-        } else {
-            PopupMenu popupMenu = findOrCreatePopupMenu(menu, menuPathElements, 1);
-            MenuItem menuItem = new MenuItem(name);
-            menuItem.addListener(menuListener);
-            popupMenu.addItem(menuItem);
-        }
-    }
-
-    @Override
-    public void addMenuSeparator(String menuPath) {
-        String[] menuPathElements = menuPath.split("/");
-        if (menuPathElements.length < 1)
-            throw new IllegalArgumentException("Menu path has to have at least 2 elements separated by '/'");
-        if (menuPathElements[0].equals("File"))
-            throw new IllegalArgumentException("Can't use File element as a first element");
-
-        Menu menu = findOrCreateMenu(menuPathElements[0]);
-        if (menuPathElements.length == 1) {
-            menu.addSeparator();
-        } else {
-            PopupMenu popupMenu = findOrCreatePopupMenu(menu, menuPathElements, 1);
-            popupMenu.addSeparator();
-        }
-    }
-
-    @Override
-    public void setMenuDisabled(String menuPath, String name, boolean disabled) {
-        String[] menuPathElements = menuPath.split("/");
-        if (menuPathElements.length < 1)
-            throw new IllegalArgumentException("Menu path has to have at least 2 elements separated by '/'");
-        if (menuPathElements[0].equals("File"))
-            throw new IllegalArgumentException("Can't use File element as a first element");
-
-        menuItems.get(menuPath+"/"+name).setDisabled(disabled);
-    }
-
-    @Override
-    public AssistantTab addTab(String title, Table content, AssistantPluginTab tab) {
+    private AssistantTab addTab(String title, Table content, AssistantPluginTab tab) {
         AssistantTabFromPlugin resultTab = new AssistantTabFromPlugin(title, content, tab);
         tabbedPane.add(resultTab);
         return new AssistantTab() {
@@ -379,69 +320,6 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
                 tabbedPane.remove(resultTab);
             }
         };
-    }
-
-    private Menu findOrCreateMenu(String name) {
-        Menu result = createdMenus.get(name);
-        if (result == null) {
-            if (initialized)
-                throw new GdxRuntimeException("Can't create top-level menus after the application has been initialized");
-
-            result = new Menu(name);
-            menuBar.addMenu(result);
-            createdMenus.put(name, result);
-        }
-        return result;
-    }
-
-    private PopupMenu findOrCreatePopupMenu(Menu menu, String[] menuSplit, int startIndex) {
-        for (Actor child : menu.getChildren()) {
-            if (child instanceof MenuItem) {
-                MenuItem childMenuItem = (MenuItem) child;
-                if (childMenuItem.getLabel().getText().toString().equals(menuSplit[startIndex]) && childMenuItem.getSubMenu() != null) {
-                    if (startIndex + 1 < menuSplit.length) {
-                        return findOrCreatePopupMenu(childMenuItem.getSubMenu(), menuSplit, startIndex + 1);
-                    } else {
-                        return childMenuItem.getSubMenu();
-                    }
-                }
-            }
-        }
-
-        PopupMenu createdPopup = new PopupMenu();
-        MenuItem createdMenuItem = new MenuItem(menuSplit[startIndex]);
-        createdMenuItem.setSubMenu(createdPopup);
-        menu.addItem(createdMenuItem);
-        if (startIndex + 1 < menuSplit.length) {
-            return findOrCreatePopupMenu(createdPopup, menuSplit, startIndex + 1);
-        } else {
-            return createdPopup;
-        }
-    }
-
-    private PopupMenu findOrCreatePopupMenu(PopupMenu popupMenu, String[] menuSplit, int startIndex) {
-        for (Actor child : popupMenu.getChildren()) {
-            if (child instanceof MenuItem) {
-                MenuItem childMenuItem = (MenuItem) child;
-                if (childMenuItem.getLabel().getText().toString().equals(menuSplit[startIndex]) && childMenuItem.getSubMenu() != null) {
-                    if (startIndex + 1 < menuSplit.length) {
-                        return findOrCreatePopupMenu(childMenuItem.getSubMenu(), menuSplit, startIndex + 1);
-                    } else {
-                        return childMenuItem.getSubMenu();
-                    }
-                }
-            }
-        }
-
-        PopupMenu createdPopup = new PopupMenu();
-        MenuItem createdMenuItem = new MenuItem(menuSplit[startIndex]);
-        createdMenuItem.setSubMenu(createdPopup);
-        popupMenu.addItem(createdMenuItem);
-        if (startIndex + 1 < menuSplit.length) {
-            return findOrCreatePopupMenu(createdPopup, menuSplit, startIndex + 1);
-        } else {
-            return createdPopup;
-        }
     }
 
     public void processUpdate(float deltaTime) {
@@ -549,5 +427,132 @@ public class AssistantScreen extends VisTable implements AssistantApplication {
             lastTab.getTab().setActive(false);
             lastTab = null;
         }
+    }
+
+    public AssistantApplication createApplicationForPlugin(AssistantPlugin assistantPlugin) {
+        return new AssistantApplication() {
+            private ObjectMap<String, Menu> pluginMenus = new ObjectMap<>();
+            private ObjectMap<String, MenuItem> popupMenuItems = new ObjectMap<>();
+            private ObjectMap<String, MenuItem> menuItems = new ObjectMap<>();
+
+            @Override
+            public FileHandle getProjectFolder() {
+                return AssistantScreen.this.getProjectFolder();
+            }
+
+            @Override
+            public Skin getApplicationSkin() {
+                return AssistantScreen.this.getApplicationSkin();
+            }
+
+            @Override
+            public boolean addMainMenu(String name) {
+                if (pluginMenus.containsKey(name))
+                    return false;
+                Menu menu = new Menu(name);
+                menuBar.addMenu(menu);
+                pluginMenus.put(name, menu);
+                return true;
+            }
+
+            @Override
+            public boolean addPopupMenu(String mainMenu, String path, String name) {
+                Menu menu = pluginMenus.get(mainMenu);
+                if (menu == null)
+                    return false;
+
+                String key = mainMenu + "/" + ((path != null) ? path + "/" : "") + name;
+                if (popupMenuItems.containsKey(key))
+                    return false;
+
+                MenuItem menuItem = new MenuItem(name);
+                PopupMenu popupMenu = new PopupMenu();
+                menuItem.setSubMenu(popupMenu);
+
+                if (path == null) {
+                    menu.addItem(menuItem);
+                } else {
+                    MenuItem parentMenuItem = popupMenuItems.get(mainMenu + "/" + path);
+                    if (parentMenuItem == null)
+                        return false;
+                    parentMenuItem.getSubMenu().addItem(menuItem);
+                }
+                popupMenuItems.put(key, menuItem);
+                return true;
+            }
+
+            @Override
+            public boolean addMenuItem(String mainMenu, String popupPath, String name, Runnable runnable) {
+                Menu menu = pluginMenus.get(mainMenu);
+                if (menu == null)
+                    return false;
+
+                String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
+                if (menuItems.containsKey(key))
+                    return false;
+
+                MenuItem menuItem = new MenuItem(name);
+
+                if (popupPath == null) {
+                    menu.addItem(menuItem);
+                } else {
+                    MenuItem parentMenuItem = popupMenuItems.get(mainMenu + "/" + popupPath);
+                    if (parentMenuItem == null)
+                        return false;
+                    parentMenuItem.getSubMenu().addItem(menuItem);
+                }
+                menuItem.addListener(
+                        new ChangeListener() {
+                            @Override
+                            public void changed(ChangeEvent event, Actor actor) {
+                                runnable.run();
+                            }
+                        });
+                menuItems.put(key, menuItem);
+                return true;
+            }
+
+            @Override
+            public boolean addMenuSeparator(String mainMenu, String popupPath) {
+                Menu menu = pluginMenus.get(mainMenu);
+                if (menu == null)
+                    return false;
+
+                if (popupPath == null) {
+                    menu.addSeparator();
+                } else {
+                    String parentKey = mainMenu + "/" + popupPath;
+                    MenuItem parentPopup = popupMenuItems.get(parentKey);
+                    if (parentPopup == null)
+                        return false;
+                    parentPopup.getSubMenu().addSeparator();
+                }
+                return true;
+            }
+
+            @Override
+            public boolean setMenuItemDisabled(String mainMenu, String popupPath, String name, boolean disabled) {
+                return setMenuDisabled(mainMenu, popupPath, name, disabled, menuItems);
+            }
+
+            @Override
+            public boolean setPopupMenuDisabled(String mainMenu, String popupPath, String name, boolean disabled) {
+                return setMenuDisabled(mainMenu, popupPath, name, disabled, popupMenuItems);
+            }
+
+            private boolean setMenuDisabled(String mainMenu, String popupPath, String name, boolean disabled, ObjectMap<String, MenuItem> items) {
+                String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
+                MenuItem menuItem = items.get(key);
+                if (menuItem == null)
+                    return false;
+                menuItem.setDisabled(disabled);
+                return true;
+            }
+
+            @Override
+            public AssistantTab addTab(String title, Table content, AssistantPluginTab tab) {
+                return AssistantScreen.this.addTab(title, content, tab);
+            }
+        };
     }
 }

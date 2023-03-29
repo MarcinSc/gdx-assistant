@@ -41,21 +41,23 @@ public class TestAssistantPlugin implements AssistantPlugin {
     public void registerPlugin(AssistantApplication pluggableApplication) {
         this.application = pluggableApplication;
 
-        application.addMenu("Test", "Test",
+        application.addMainMenu("Test");
+        application.addMenuItem("Test", null, "Test",
                 new Runnable() {
                     public void run() {
                         System.out.println("Test pressed");
                     }
                 });
-        application.addMenu("Test/Test", "Sub-test",
+        application.addPopupMenu("Test", null, "Test");
+        application.addMenuItem("Test", "Test", "Sub-test",
                 new Runnable() {
                     @Override
                     public void run() {
                         System.out.println("Sub-test pressed");
                     }
                 });
-        application.addMenuSeparator("Test/Test");
-        application.addMenu("Test/Test", "Sub-test2",
+        application.addMenuSeparator("Test", "Test");
+        application.addMenuItem("Test", "Test", "Sub-test2",
                 new Runnable() {
                     @Override
                     public void run() {

@@ -15,6 +15,8 @@ import com.gempukku.gdx.plugins.PluginRegistration;
 import com.gempukku.gdx.plugins.PluginsProvider;
 import com.kotcrab.vis.ui.VisUI;
 
+import java.util.function.Function;
+
 public class GdxAssistant extends ApplicationAdapter {
 	private final PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider;
 	private AssistantScreen assistantScreen;
@@ -57,7 +59,13 @@ public class GdxAssistant extends ApplicationAdapter {
 				});
 
 		pluginRegistration = new PluginRegistration<>();
-		pluginRegistration.registerPlugins(pluginsProvider, assistantScreen);
+		pluginRegistration.registerPlugins(pluginsProvider,
+				new Function<AssistantPlugin, AssistantApplication>() {
+					@Override
+					public AssistantApplication apply(AssistantPlugin assistantPlugin) {
+						return assistantScreen.createApplicationForPlugin(assistantPlugin);
+					}
+				});
 
 		assistantScreen.setInitialized();
 
