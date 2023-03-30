@@ -3,6 +3,7 @@ package com.gempukku.gdx.assistant.plugin;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
 
 public interface AssistantApplication {
     FileHandle getProjectFolder();
@@ -26,4 +27,6 @@ public interface AssistantApplication {
     AssistantTab addTab(String title, Table content, AssistantPluginTab tab);
 
     void switchToTab(AssistantPluginTab tab);
+
+    void addWindow(Window window);
 }

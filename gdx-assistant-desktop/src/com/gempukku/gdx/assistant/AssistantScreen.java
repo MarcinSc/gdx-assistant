@@ -10,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.*;
 import com.gempukku.gdx.assistant.plugin.AssistantApplication;
@@ -632,6 +633,11 @@ public class AssistantScreen extends VisTable {
             @Override
             public void switchToTab(AssistantPluginTab tab) {
                 AssistantScreen.this.switchToTab(tab);
+            }
+
+            @Override
+            public void addWindow(Window window) {
+                AssistantScreen.this.getStage().addActor(window);
             }
         };
     }
