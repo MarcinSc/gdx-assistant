@@ -493,6 +493,7 @@ public class AssistantScreen extends VisTable {
             private ObjectMap<String, Menu> pluginMenus = new ObjectMap<>();
             private ObjectMap<String, MenuItem> popupMenuItems = new ObjectMap<>();
             private ObjectMap<String, MenuItem> menuItems = new ObjectMap<>();
+            private ObjectMap<String, Runnable> listeners = new ObjectMap<>();
 
             @Override
             public FileHandle getProjectFolder() {
@@ -564,10 +565,25 @@ public class AssistantScreen extends VisTable {
                         new ChangeListener() {
                             @Override
                             public void changed(ChangeEvent event, Actor actor) {
-                                runnable.run();
+                                listeners.get(key).run();
                             }
                         });
                 menuItems.put(key, menuItem);
+                listeners.put(key, runnable);
+                return true;
+            }
+
+            @Override
+            public boolean updateMenuItemListener(String mainMenu, String popupPath, String name, Runnable runnable) {
+                Menu menu = pluginMenus.get(mainMenu);
+                if (menu == null)
+                    return false;
+
+                String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
+                if (!menuItems.containsKey(key))
+                    return false;
+
+                listeners.put(key, runnable);
                 return true;
             }
 
