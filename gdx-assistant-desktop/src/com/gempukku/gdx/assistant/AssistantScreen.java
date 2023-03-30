@@ -2,6 +2,7 @@ package com.gempukku.gdx.assistant;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.assets.loaders.resolvers.LocalFileHandleResolver;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -29,9 +30,12 @@ import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.List;
 
 public class AssistantScreen extends VisTable {
     private static final String projectFileExtension = "assp";
+
+    private AssistantPreferences assistantPreferences;
 
     private PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider;
     private Skin skin;
@@ -45,6 +49,7 @@ public class AssistantScreen extends VisTable {
 
     private FileTypeFilter assistantProjectsFilter;
 
+    private MenuItem recentProjects;
     private MenuItem saveMenu;
     private MenuItem saveAsMenu;
     private MenuItem closeMenu;
@@ -53,6 +58,8 @@ public class AssistantScreen extends VisTable {
     private AssistantTabFromPlugin lastTab = null;
 
     public AssistantScreen(PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider, Skin skin) {
+        assistantPreferences = new AssistantPreferences(Gdx.app.getPreferences("gdx-assistant.preferences"));
+
         this.pluginsProvider = pluginsProvider;
         this.skin = skin;
 
@@ -142,6 +149,12 @@ public class AssistantScreen extends VisTable {
                 });
         fileMenu.addItem(open);
 
+        recentProjects = new MenuItem("Recent projects");
+        PopupMenu recentProjectPopup = new PopupMenu();
+        recentProjects.setSubMenu(recentProjectPopup);
+        rebuildRecentProjectsMenu();
+        fileMenu.addItem(recentProjects);
+
         saveMenu = new MenuItem("Save project");
         ChangeListener saveListener = new ChangeListener() {
             @Override
@@ -193,6 +206,29 @@ public class AssistantScreen extends VisTable {
         return fileMenu;
     }
 
+    private void rebuildRecentProjectsMenu() {
+        PopupMenu popupMenu = recentProjects.getSubMenu();
+        popupMenu.clearChildren();
+
+        List<FileHandle> recentProjectList = assistantPreferences.getRecentProjects();
+        if (recentProjectList.isEmpty()) {
+            recentProjects.setDisabled(true);
+        } else {
+            for (FileHandle fileHandle : recentProjectList) {
+                MenuItem recentProject = new MenuItem(fileHandle.name());
+                recentProject.addListener(
+                        new ChangeListener() {
+                            @Override
+                            public void changed(ChangeEvent event, Actor actor) {
+                                openProject(fileHandle);
+                            }
+                        });
+                popupMenu.addItem(recentProject);
+            }
+            recentProjects.setDisabled(false);
+        }
+    }
+
     private void addControlShortcut(int key, final MenuItem menuItem, final ChangeListener listener) {
         menuItem.setShortcut(Input.Keys.CONTROL_LEFT, key);
         shortcuts.put(key, new Runnable() {
@@ -237,7 +273,7 @@ public class AssistantScreen extends VisTable {
                     currentProject = new AssistantProject();
                     currentProject.openProject(selectedFile, pluginsProvider);
 
-                    projectFile = selectedFile;
+                    setProjectFile(selectedFile);
 
                     saveMenu.setDisabled(false);
                     saveAsMenu.setDisabled(false);
@@ -245,6 +281,23 @@ public class AssistantScreen extends VisTable {
                 }
             });
             getStage().addActor(fileChooser.fadeIn());
+        }
+    }
+
+    private void openProject(FileHandle project) {
+        if (currentProject != null && currentProject.isDirty()) {
+            Dialogs.showErrorDialog(getStage(), "Current pipeline has been modified, close it or save it");
+        } else {
+            closeProject();
+
+            currentProject = new AssistantProject();
+            currentProject.openProject(project, pluginsProvider);
+
+            setProjectFile(project);
+
+            saveMenu.setDisabled(false);
+            saveAsMenu.setDisabled(false);
+            closeMenu.setDisabled(false);
         }
     }
 
@@ -281,7 +334,7 @@ public class AssistantScreen extends VisTable {
                     selectedFile = selectedFile.parent().child(selectedFile.name() + "." + projectFileExtension);
                 }
                 saveProjectToFile(selectedFile);
-                projectFile = selectedFile;
+                setProjectFile(selectedFile);
             }
         });
         getStage().addActor(fileChooser.fadeIn());
@@ -388,6 +441,12 @@ public class AssistantScreen extends VisTable {
         } else {
             Gdx.app.exit();
         }
+    }
+
+    private void setProjectFile(FileHandle file) {
+        projectFile = file;
+        assistantPreferences.addRecentProject(file);
+        rebuildRecentProjectsMenu();
     }
 
     private void doCloseTheProject() {
