@@ -640,7 +640,7 @@ public class AssistantScreen extends VisTable {
                 ObjectMap.Entries<String, MenuItem> menuItemsIterator = menuItems.entries().iterator();
                 while (menuItemsIterator.hasNext()) {
                     ObjectMap.Entry<String, MenuItem> menuItemEntry = menuItemsIterator.next();
-                    if (menuItemEntry.key.equals(key+"/"))
+                    if (menuItemEntry.key.startsWith(key+"/"))
                         menuItemsIterator.remove();
                 }
 
