@@ -619,6 +619,20 @@ public class AssistantScreen extends VisTable {
                 return setMenuDisabled(mainMenu, popupPath, name, disabled, popupMenuItems);
             }
 
+            @Override
+            public boolean clearPopupMenuContents(String mainMenu, String popupPath, String name) {
+                Menu menu = pluginMenus.get(mainMenu);
+                if (menu == null)
+                    return false;
+
+                String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
+                MenuItem popupMenuItem = popupMenuItems.get(key);
+                if (popupMenuItem == null)
+                    return false;
+                popupMenuItem.getSubMenu().clearChildren();
+                return true;
+            }
+
             private boolean setMenuDisabled(String mainMenu, String popupPath, String name, boolean disabled, ObjectMap<String, MenuItem> items) {
                 String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
                 MenuItem menuItem = items.get(key);

@@ -60,6 +60,7 @@ public class AssistantProject {
         for (AssistantPluginProject pluginProject : pluginProjects.values()) {
             pluginProject.closeProject();
         }
+        pluginProjects.clear();
     }
 
     public void processUpdate(float deltaTime) {

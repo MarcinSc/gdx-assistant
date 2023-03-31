@@ -22,6 +22,8 @@ public interface AssistantApplication {
 
     boolean setPopupMenuDisabled(String mainMenu, String popupPath, String name, boolean disabled);
 
+    boolean clearPopupMenuContents(String mainMenu, String popupPath, String name);
+
     boolean updateMenuItemListener(String mainMenu, String popupPath, String name, Runnable runnable);
 
     AssistantTab addTab(String title, Table content, AssistantPluginTab tab);
