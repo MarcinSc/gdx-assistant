@@ -30,3 +30,21 @@ allprojects {
         maven { url "https://jitpack.io" }
     }
 }
+
+configure(subprojects) {
+    apply plugin: 'java-library'
+
+    task javadocJar(type: Jar) {
+        classifier 'javadoc'
+        from javadoc
+    }
+
+    task sourcesJar(type: Jar) {
+        classifier 'sources'
+        from sourceSets.main.allSource
+    }
+
+    artifacts {
+        archives javadocJar, sourcesJar
+    }
+}

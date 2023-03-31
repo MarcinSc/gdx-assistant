@@ -65,7 +65,7 @@ public class AssistantScreen extends VisTable {
         this.skin = skin;
 
         assistantProjectsFilter = new FileTypeFilter(true);
-        assistantProjectsFilter.addRule("Gdx assistant project", projectFileExtension);
+        assistantProjectsFilter.addRule("Gdx assistant project (*.assp)", projectFileExtension);
 
         insideTable = new VisTable();
 
