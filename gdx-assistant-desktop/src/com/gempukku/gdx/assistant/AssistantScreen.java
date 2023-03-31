@@ -630,6 +630,20 @@ public class AssistantScreen extends VisTable {
                 if (popupMenuItem == null)
                     return false;
                 popupMenuItem.getSubMenu().clearChildren();
+
+                ObjectMap.Entries<String, MenuItem> popupsIterator = popupMenuItems.entries().iterator();
+                while (popupsIterator.hasNext()) {
+                    ObjectMap.Entry<String, MenuItem> popupEntry = popupsIterator.next();
+                    if (popupEntry.key.startsWith(key+"/"))
+                        popupsIterator.remove();
+                }
+                ObjectMap.Entries<String, MenuItem> menuItemsIterator = menuItems.entries().iterator();
+                while (menuItemsIterator.hasNext()) {
+                    ObjectMap.Entry<String, MenuItem> menuItemEntry = menuItemsIterator.next();
+                    if (menuItemEntry.key.equals(key+"/"))
+                        menuItemsIterator.remove();
+                }
+
                 return true;
             }
 
