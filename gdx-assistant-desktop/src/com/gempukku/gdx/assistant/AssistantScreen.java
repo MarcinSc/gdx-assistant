@@ -487,6 +487,7 @@ public class AssistantScreen extends VisTable {
             lastTab.getTab().setActive(false);
             lastTab = null;
         }
+        insideTable.clearChildren();
     }
 
     public AssistantApplication createApplicationForPlugin(AssistantPlugin assistantPlugin) {
@@ -566,7 +567,9 @@ public class AssistantScreen extends VisTable {
                         new ChangeListener() {
                             @Override
                             public void changed(ChangeEvent event, Actor actor) {
-                                listeners.get(key).run();
+                                Runnable listener = listeners.get(key);
+                                if (listener != null)
+                                    listener.run();
                             }
                         });
                 menuItems.put(key, menuItem);
