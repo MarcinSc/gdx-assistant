@@ -249,6 +249,7 @@ public class AssistantScreen extends VisTable {
 
             currentProject = new AssistantProject();
             currentProject.newProjectCreated(pluginsProvider);
+            Gdx.graphics.setTitle("Gdx Assistant - (new project)");
 
             saveMenu.setDisabled(false);
             saveAsMenu.setDisabled(false);
@@ -448,6 +449,7 @@ public class AssistantScreen extends VisTable {
         projectFile = file;
         assistantPreferences.addRecentProject(file);
         rebuildRecentProjectsMenu();
+        Gdx.graphics.setTitle("Gdx Assistant - " + file.name());
     }
 
     private void doCloseTheProject() {
@@ -460,6 +462,7 @@ public class AssistantScreen extends VisTable {
 
         currentProject = null;
         projectFile = null;
+        Gdx.graphics.setTitle("Gdx Assistant");
     }
 
     private void switchedToTab(Tab tab) {
@@ -634,13 +637,13 @@ public class AssistantScreen extends VisTable {
                 ObjectMap.Entries<String, MenuItem> popupsIterator = popupMenuItems.entries().iterator();
                 while (popupsIterator.hasNext()) {
                     ObjectMap.Entry<String, MenuItem> popupEntry = popupsIterator.next();
-                    if (popupEntry.key.startsWith(key+"/"))
+                    if (popupEntry.key.startsWith(key + "/"))
                         popupsIterator.remove();
                 }
                 ObjectMap.Entries<String, MenuItem> menuItemsIterator = menuItems.entries().iterator();
                 while (menuItemsIterator.hasNext()) {
                     ObjectMap.Entry<String, MenuItem> menuItemEntry = menuItemsIterator.next();
-                    if (menuItemEntry.key.startsWith(key+"/"))
+                    if (menuItemEntry.key.startsWith(key + "/"))
                         menuItemsIterator.remove();
                 }
 
