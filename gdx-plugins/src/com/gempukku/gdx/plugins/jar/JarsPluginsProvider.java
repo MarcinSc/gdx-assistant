@@ -59,6 +59,8 @@ public class JarsPluginsProvider<T, U extends Plugin<T>> implements PluginsProvi
             } catch (Exception exp) {
                 throw new GdxRuntimeException("Unable to load plugins", exp);
             }
+        } else {
+            pluginsFiles = Gdx.files;
         }
     }
 
