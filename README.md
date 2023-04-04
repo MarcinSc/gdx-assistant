@@ -20,7 +20,7 @@ So your file structure should look like this:
 
 ### gdx-graph
 Allows for creating graphs that you might use in your projects. Currently, the only supported type of graph is
-`RenderingPipeline`, which handles rendering for you. More information available at:<br>
+`RenderingPipeline`, which handles rendering for you. More information available at
 [Gempukku Studio YouTube channel](https://www.youtube.com/GempukkuStudio)
 
 Plugin available for download at:<br>
