@@ -889,6 +889,8 @@
   },
   "com.gempukku.libgdx.ui.tabbedpane.GDirtyTabLabel$GDirtyTabLabelStyle": {
     "default": {
+      "textMaxWidth": 150,
+      "textMaxWidthActive": 150,
       "background": "tab-label",
       "backgroundActive": "tab-label-blue",
       "textStyle": "dirty-tab-label-clean",
