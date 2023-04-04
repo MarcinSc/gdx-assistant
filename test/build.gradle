@@ -12,6 +12,7 @@ dependencies {
     api project(":gdx-plugins")
     api project(":gdx-assistant-plugin")
 
+    implementation "com.kotcrab.vis:vis-ui:$visUiVersion"
     implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
     implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 }
