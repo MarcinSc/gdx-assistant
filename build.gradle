@@ -17,7 +17,6 @@ allprojects {
     version = "$gdxAssistantVersion"
     ext {
         appName = "Gdx Assistant"
-        gdxVersion = '1.11.0'
     }
 
     repositories {
@@ -33,6 +32,9 @@ allprojects {
 
 configure(subprojects) {
     apply plugin: 'java-library'
+
+    sourceSets.main.java.srcDirs = ["src/"]
+    [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
     task javadocJar(type: Jar) {
         classifier 'javadoc'

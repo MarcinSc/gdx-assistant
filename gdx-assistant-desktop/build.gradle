@@ -1,7 +1,6 @@
 apply plugin: "java-library"
 
 sourceCompatibility = 1.8
-sourceSets.main.java.srcDirs = ["src/"]
 sourceSets.main.resources.srcDirs = ["assets"]
 
 project.ext.mainClassName = "com.gempukku.gdx.assistant.DesktopLauncher"
@@ -22,7 +21,7 @@ dependencies {
 }
 
 def assistantPlugins = [
-        "https://jitpack.io/com/github/MarcinSc/gdx-graph/gdx-graph-assistant/814dba4/gdx-graph-assistant-814dba4.jar"
+        "https://jitpack.io/com/github/MarcinSc/gdx-graph/gdx-graph-assistant/${gdxGraphVersion}/gdx-graph-assistant-${gdxGraphVersion}.jar"
 ]
 
 build {
