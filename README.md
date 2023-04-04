@@ -19,10 +19,11 @@ So your file structure should look like this:
 ```
 
 ### gdx-graph
-Allows for creating graphs that you might use in your projects. Currently the only supporter type of graph is
-`RenderingPipeline`, which handles rendering for you.
+Allows for creating graphs that you might use in your projects. Currently, the only supported type of graph is
+`RenderingPipeline`, which handles rendering for you. More information available at:<br>
+[Gempukku Studio YouTube channel](https://www.youtube.com/GempukkuStudio)
 
-Available at:<br>
+Plugin available for download at:<br>
 https://github.com/MarcinSc/gdx-graph/releases
 
 ## Creating your own plugin
