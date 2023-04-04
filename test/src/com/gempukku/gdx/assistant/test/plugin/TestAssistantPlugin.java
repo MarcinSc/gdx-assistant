@@ -65,22 +65,27 @@ public class TestAssistantPlugin implements AssistantPlugin {
                     }
                 });
 
-        addTestTab("Test1");
-        addTestTab("Test2");
-        addTestTab("Test3");
+        addTestTab("Test1", true);
+        addTestTab("Test2", false);
+        addTestTab("Test3", true);
     }
 
-    private void addTestTab(String title) {
+    private void addTestTab(String title, boolean dirty) {
         application.addTab(title, new VisTable(),
                 new AssistantPluginTab() {
                     @Override
+                    public boolean isDirty() {
+                        return dirty;
+                    }
+
+                    @Override
                     public void setActive(boolean active) {
-                        System.out.println("Tab "+ title +" active: "+active);
+                        System.out.println("Tab " + title + " active: " + active);
                     }
 
                     @Override
                     public void closed() {
-                        System.out.println("Tab "+ title +" closed");
+                        System.out.println("Tab " + title + " closed");
                     }
                 });
     }

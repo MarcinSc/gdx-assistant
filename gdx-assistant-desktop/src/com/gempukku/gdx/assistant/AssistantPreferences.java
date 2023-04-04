@@ -9,18 +9,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AssistantPreferences {
+    private static final int maxRecentProjectsCount = 10;
+    private static final String recentProjectPathKey = "recentProjectPath";
+    private static final String openedProjectPathKey = "openedProjectPath";
+
     private Preferences preferences;
-    private int maxRecentProjectsCount = 10;
-    private String recentProjectPathKey;
 
     public AssistantPreferences(Preferences preferences) {
         this.preferences = preferences;
     }
 
+    public void setOpenedProject(FileHandle fileHandle) {
+        if (fileHandle != null)
+            preferences.putString(openedProjectPathKey, fileHandle.path());
+        else
+            preferences.remove(openedProjectPathKey);
+        preferences.flush();
+    }
+
     public List<FileHandle> getRecentProjects() {
         List<FileHandle> result = new ArrayList<>(maxRecentProjectsCount);
         for (int i = 0; i < maxRecentProjectsCount; i++) {
-            recentProjectPathKey = "recentProjectPath";
             String recentProject = preferences.getString(recentProjectPathKey + "[" + i + "]", null);
             if (recentProject == null)
                 break;

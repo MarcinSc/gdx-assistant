@@ -33,7 +33,7 @@ public class GdxAssistant extends ApplicationAdapter {
 
 	@Override
 	public void create () {
-		VisUI.load();
+		VisUI.load(Gdx.files.internal("skin/visui/uiskin.json"));
 
 		skin = new Skin(VisUI.SkinScale.X1.getSkinFile());
 		viewport = new ScreenViewport();
@@ -89,5 +89,6 @@ public class GdxAssistant extends ApplicationAdapter {
 	@Override
 	public void dispose () {
 		pluginRegistration.deregisterPlugins();
+		VisUI.dispose();
 	}
 }

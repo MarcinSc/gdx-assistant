@@ -2,7 +2,6 @@ package com.gempukku.gdx.assistant;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.assets.loaders.resolvers.LocalFileHandleResolver;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -18,6 +17,7 @@ import com.gempukku.gdx.assistant.plugin.AssistantPlugin;
 import com.gempukku.gdx.assistant.plugin.AssistantPluginTab;
 import com.gempukku.gdx.assistant.plugin.AssistantTab;
 import com.gempukku.gdx.plugins.PluginsProvider;
+import com.gempukku.libgdx.ui.tabbedpane.GTabbedPane;
 import com.kotcrab.vis.ui.util.OsUtils;
 import com.kotcrab.vis.ui.util.dialog.Dialogs;
 import com.kotcrab.vis.ui.util.dialog.OptionDialogListener;
@@ -25,9 +25,6 @@ import com.kotcrab.vis.ui.widget.*;
 import com.kotcrab.vis.ui.widget.file.FileChooser;
 import com.kotcrab.vis.ui.widget.file.FileChooserAdapter;
 import com.kotcrab.vis.ui.widget.file.FileTypeFilter;
-import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
-import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane;
-import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -41,8 +38,7 @@ public class AssistantScreen extends VisTable {
     private PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider;
     private Skin skin;
 
-    private VisTable insideTable;
-    private TabbedPane tabbedPane;
+    private GTabbedPane<AssistantTabFromPlugin> tabbedPane;
     private IntMap<Runnable> shortcuts = new IntMap<>();
 
     private AssistantProject currentProject;
@@ -67,31 +63,11 @@ public class AssistantScreen extends VisTable {
         assistantProjectsFilter = new FileTypeFilter(true);
         assistantProjectsFilter.addRule("Gdx assistant project (*.assp)", projectFileExtension);
 
-        insideTable = new VisTable();
-
-        tabbedPane = new TabbedPane();
-        tabbedPane.addListener(
-                new TabbedPaneAdapter() {
-                    @Override
-                    public void switchedTab(Tab tab) {
-                        switchedToTab(tab);
-                    }
-
-                    @Override
-                    public void removedTab(Tab tab) {
-                        removedPluginTab(tab);
-                    }
-
-                    @Override
-                    public void removedAllTabs() {
-                        allTabsRemoved();
-                    }
-                });
+        tabbedPane = new GTabbedPane<>();
 
         MenuBar menuBar = createMenuBar();
         add(menuBar.getTable()).growX().row();
-        add(tabbedPane.getTable()).left().growX().row();
-        add(insideTable).grow().row();
+        add(tabbedPane).grow().row();
 
         addListener(
                 new InputListener() {
@@ -342,36 +318,28 @@ public class AssistantScreen extends VisTable {
         getStage().addActor(fileChooser.fadeIn());
     }
 
-    private AssistantTab addTab(String title, Table content, AssistantPluginTab tab) {
-        AssistantTabFromPlugin resultTab = new AssistantTabFromPlugin(title, content, tab);
-        tabbedPane.add(resultTab);
+    private AssistantTab addTab(AssistantApplication assistantApplication, String title, Table content, AssistantPluginTab tab) {
+        AssistantTabFromPlugin resultTab = new AssistantTabFromPlugin(assistantApplication, currentProject, tabbedPane, title, content, tab);
+        tabbedPane.addTab(resultTab);
         return new AssistantTab() {
             @Override
             public void setTitle(String title) {
                 resultTab.setTitle(title);
-                tabbedPane.updateTabTitle(resultTab);
-            }
-
-            @Override
-            public void setDirty(boolean dirty) {
-                resultTab.setDirty(dirty);
-                tabbedPane.updateTabTitle(resultTab);
             }
 
             @Override
             public void closeTab() {
                 if (lastTab == resultTab)
                     lastTab = null;
-                tabbedPane.remove(resultTab);
+                tabbedPane.closeTab(resultTab);
             }
         };
     }
 
     private void switchToTab(AssistantPluginTab tab) {
-        for (Tab tabbedPaneTab : tabbedPane.getTabs()) {
-            AssistantTabFromPlugin assistantTab = (AssistantTabFromPlugin) tabbedPaneTab;
+        for (AssistantTabFromPlugin assistantTab : tabbedPane.getTabs()) {
             if (assistantTab.getTab() == tab) {
-                tabbedPane.switchTab(assistantTab);
+                tabbedPane.setTabActive(assistantTab);
                 break;
             }
         }
@@ -448,6 +416,7 @@ public class AssistantScreen extends VisTable {
     private void setProjectFile(FileHandle file) {
         projectFile = file;
         assistantPreferences.addRecentProject(file);
+        assistantPreferences.setOpenedProject(file);
         rebuildRecentProjectsMenu();
         Gdx.graphics.setTitle("Gdx Assistant - " + file.name());
     }
@@ -457,40 +426,10 @@ public class AssistantScreen extends VisTable {
             currentProject.closeProject();
         }
 
-        tabbedPane.removeAll();
-        insideTable.clearChildren();
-
         currentProject = null;
         projectFile = null;
+        assistantPreferences.setOpenedProject(null);
         Gdx.graphics.setTitle("Gdx Assistant");
-    }
-
-    private void switchedToTab(Tab tab) {
-        if (lastTab != null) {
-            lastTab.getTab().setActive(false);
-        }
-        insideTable.clearChildren();
-        insideTable.add(tab.getContentTable()).grow().row();
-        AssistantTabFromPlugin pluginTab = (AssistantTabFromPlugin) tab;
-        pluginTab.getTab().setActive(true);
-
-        lastTab = pluginTab;
-    }
-
-    private void removedPluginTab(Tab tab) {
-        AssistantTabFromPlugin pluginTab = (AssistantTabFromPlugin) tab;
-        pluginTab.getTab().closed();
-
-        if (lastTab == pluginTab)
-            lastTab = null;
-    }
-
-    private void allTabsRemoved() {
-        if (lastTab != null) {
-            lastTab.getTab().setActive(false);
-            lastTab = null;
-        }
-        insideTable.clearChildren();
     }
 
     public AssistantApplication createApplicationForPlugin(AssistantPlugin assistantPlugin) {
@@ -661,7 +600,7 @@ public class AssistantScreen extends VisTable {
 
             @Override
             public AssistantTab addTab(String title, Table content, AssistantPluginTab tab) {
-                return AssistantScreen.this.addTab(title, content, tab);
+                return AssistantScreen.this.addTab(this, title, content, tab);
             }
 
             @Override
