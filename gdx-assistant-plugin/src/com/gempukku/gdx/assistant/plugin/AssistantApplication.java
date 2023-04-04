@@ -31,4 +31,6 @@ public interface AssistantApplication {
     void switchToTab(AssistantPluginTab tab);
 
     void addWindow(Window window);
+
+    FileHandle getInternalResource(String name);
 }

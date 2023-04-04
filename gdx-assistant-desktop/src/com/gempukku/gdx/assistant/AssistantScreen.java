@@ -612,6 +612,11 @@ public class AssistantScreen extends VisTable {
             public void addWindow(Window window) {
                 AssistantScreen.this.getStage().addActor(window);
             }
+
+            @Override
+            public FileHandle getInternalResource(String name) {
+                return Gdx.files.internal(name);
+            }
         };
     }
 }
