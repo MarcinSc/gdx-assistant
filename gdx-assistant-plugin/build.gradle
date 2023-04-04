@@ -9,7 +9,6 @@ dependencies {
     api project(":gdx-plugins")
 
     implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
-    implementation "com.github.MarcinSc.gdx-graph:gdx-graph-assistant:814dba4"
 }
 
 eclipse.project.name = "gdx-assistant-plugin"
