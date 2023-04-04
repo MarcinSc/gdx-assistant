@@ -8,13 +8,16 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.gempukku.gdx.assistant.plugin.AssistantApplication;
 import com.gempukku.gdx.assistant.plugin.AssistantPlugin;
 import com.gempukku.gdx.plugins.PluginRegistration;
 import com.gempukku.gdx.plugins.PluginsProvider;
+import com.gempukku.gdx.plugins.jar.JarsPluginsProvider;
 import com.kotcrab.vis.ui.VisUI;
 
+import java.io.File;
 import java.util.function.Function;
 
 public class GdxAssistant extends ApplicationAdapter {
@@ -33,6 +36,9 @@ public class GdxAssistant extends ApplicationAdapter {
 
 	@Override
 	public void create () {
+		pluginsProvider.loadPlugins();
+		Gdx.files = pluginsProvider.getPluginFiles();
+
 		VisUI.load(Gdx.files.internal("skin/visui/uiskin.json"));
 
 		skin = new Skin(VisUI.SkinScale.X1.getSkinFile());

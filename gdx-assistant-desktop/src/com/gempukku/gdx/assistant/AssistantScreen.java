@@ -89,7 +89,7 @@ public class AssistantScreen extends VisTable {
     }
 
     private FileHandle getProjectFolder() {
-        return new LocalFileHandleResolver().resolve(".").parent();
+        return projectFile.parent();
     }
 
     private Skin getApplicationSkin() {
@@ -269,9 +269,8 @@ public class AssistantScreen extends VisTable {
             closeProject();
 
             currentProject = new AssistantProject();
-            currentProject.openProject(project, pluginsProvider);
-
             setProjectFile(project);
+            currentProject.openProject(project, pluginsProvider);
 
             saveMenu.setDisabled(false);
             saveAsMenu.setDisabled(false);

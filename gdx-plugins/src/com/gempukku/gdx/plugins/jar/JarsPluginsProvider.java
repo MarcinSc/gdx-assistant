@@ -1,5 +1,9 @@
 package com.gempukku.gdx.plugins.jar;
 
+import com.badlogic.gdx.Files;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.gempukku.gdx.plugins.Plugin;
 import com.gempukku.gdx.plugins.PluginsProvider;
 
@@ -14,9 +18,19 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 public class JarsPluginsProvider<T, U extends Plugin<T>> implements PluginsProvider<T, U> {
-    private List<U> plugins = new ArrayList<>();
+    private File pluginFolder;
+    private String classNameMainAttribute;
 
-    public void initializePluginsAndClassloader(File pluginFolder, String classNameMainAttribute) throws Exception {
+    private List<U> plugins = new ArrayList<>();
+    private Files pluginsFiles;
+
+    public JarsPluginsProvider(File pluginFolder, String classNameMainAttribute) {
+        this.pluginFolder = pluginFolder;
+        this.classNameMainAttribute = classNameMainAttribute;
+    }
+
+    @Override
+    public void loadPlugins() {
         File[] jarFiles = pluginFolder.listFiles(
                 new FilenameFilter() {
                     @Override
@@ -25,21 +39,32 @@ public class JarsPluginsProvider<T, U extends Plugin<T>> implements PluginsProvi
                     }
                 });
         if (jarFiles != null) {
-            ClassLoader classLoader = setupPluginClassLoader(jarFiles);
+            try {
+                ClassLoader classLoader = setupPluginClassLoader(jarFiles);
 
-            for (File file : jarFiles) {
-                try (JarFile jarFile = new JarFile(file)) {
-                    Manifest manifest = jarFile.getManifest();
-                    if (manifest != null) {
-                        String pluginClassName = manifest.getMainAttributes().getValue(classNameMainAttribute);
-                        if (pluginClassName != null) {
-                            U plugin = (U) Class.forName(pluginClassName, true, classLoader).newInstance();
-                            plugins.add(plugin);
+                for (File file : jarFiles) {
+                    try (JarFile jarFile = new JarFile(file)) {
+                        Manifest manifest = jarFile.getManifest();
+                        if (manifest != null) {
+                            String pluginClassName = manifest.getMainAttributes().getValue(classNameMainAttribute);
+                            if (pluginClassName != null) {
+                                U plugin = (U) Class.forName(pluginClassName, true, classLoader).newInstance();
+                                plugins.add(plugin);
+                            }
                         }
                     }
                 }
+
+                pluginsFiles = new JarsFiles(classLoader, Gdx.files);
+            } catch (Exception exp) {
+                throw new GdxRuntimeException("Unable to load plugins", exp);
             }
         }
+    }
+
+    @Override
+    public Files getPluginFiles() {
+        return pluginsFiles;
     }
 
     @Override

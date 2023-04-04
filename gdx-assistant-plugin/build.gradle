@@ -6,9 +6,10 @@ sourceCompatibility = 1.8
 sourceSets.main.java.srcDirs = [ "src/" ]
 
 dependencies {
-    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    api project(":gdx-plugins")
 
-    implementation project(":gdx-plugins")
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.github.MarcinSc.gdx-graph:gdx-graph-assistant:814dba4"
 }
 
 eclipse.project.name = "gdx-assistant-plugin"

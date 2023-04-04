@@ -11,17 +11,12 @@ import java.io.File;
 // Please note that on macOS your application needs to be started with the -XstartOnFirstThread JVM argument
 public class DesktopLauncher {
     public static void main(String[] arg) {
-        JarsPluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider;
-        try {
-            pluginsProvider = new JarsPluginsProvider<>();
-            pluginsProvider.initializePluginsAndClassloader(new File("plugins"), "Gdx-Assistant-Plugin");
-        } catch (Exception exp) {
-            throw new RuntimeException("Unable to initialize application, due to plugin problems", exp);
-        }
-
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setForegroundFPS(60);
+        config.setWindowedMode(1440, 810);
         config.setTitle("Gdx Assistant");
+
+        JarsPluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider = new JarsPluginsProvider<>(new File("plugins"), "Gdx-Assistant-Plugin");
 
         new Lwjgl3Application(new GdxAssistant(pluginsProvider), config);
     }

@@ -8,12 +8,12 @@ project.ext.mainClassName = "com.gempukku.gdx.assistant.test.TestLauncher"
 project.ext.assetsDir = new File("../assets")
 
 dependencies {
-    implementation project(":gdx-assistant-desktop")
-    implementation project(":gdx-plugins")
-    implementation project(":gdx-assistant-plugin")
+    api project(":gdx-assistant-desktop")
+    api project(":gdx-plugins")
+    api project(":gdx-assistant-plugin")
 
-    api "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
-    api "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 }
 
 eclipse.project.name = appName + "-test"
