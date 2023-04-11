@@ -2,7 +2,6 @@ package com.gempukku.gdx.assistant;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.assets.loaders.resolvers.LocalFileHandleResolver;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -12,10 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.*;
-import com.gempukku.gdx.assistant.plugin.AssistantApplication;
-import com.gempukku.gdx.assistant.plugin.AssistantPlugin;
-import com.gempukku.gdx.assistant.plugin.AssistantPluginTab;
-import com.gempukku.gdx.assistant.plugin.AssistantTab;
+import com.gempukku.gdx.assistant.plugin.*;
 import com.gempukku.gdx.plugins.PluginsProvider;
 import com.gempukku.libgdx.ui.tabbedpane.GTabbedPane;
 import com.kotcrab.vis.ui.util.OsUtils;
@@ -33,26 +29,35 @@ import java.util.List;
 public class AssistantScreen extends VisTable {
     private static final String projectFileExtension = "assp";
 
-    private AssistantPreferences assistantPreferences;
+    private final AssistantPreferences assistantPreferences;
+    private final FileTypeFilter assistantProjectsFilter;
+    private final AssistantUndoManager assistantUndoManager;
 
-    private PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider;
-    private Skin skin;
+    private final PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider;
+    private final Skin skin;
 
-    private GTabbedPane<AssistantTabFromPlugin> tabbedPane;
-    private IntMap<Runnable> shortcuts = new IntMap<>();
+    private final MenuBar menuBar;
+    private final GTabbedPane<AssistantTabFromPlugin> tabbedPane;
+    private final VisLabel statusBar;
+
+    private final IntMap<Runnable> controlShortcuts = new IntMap<>();
+    private final IntMap<Runnable> controlShiftShortcuts = new IntMap<>();
 
     private AssistantProject currentProject;
     private FileHandle projectFile;
 
-    private FileTypeFilter assistantProjectsFilter;
+    // File menu
+    private MenuItem newMenuItem;
+    private MenuItem openMenuItem;
+    private MenuItem recentProjectsMenuItem;
+    private MenuItem saveMenuItem;
+    private MenuItem saveAsMenuItem;
+    private MenuItem closeMenuItem;
+    private MenuItem exitMenuItem;
 
-    private MenuItem recentProjects;
-    private MenuItem saveMenu;
-    private MenuItem saveAsMenu;
-    private MenuItem closeMenu;
-    private MenuBar menuBar;
-
-    private AssistantTabFromPlugin lastTab = null;
+    // Edit menu
+    private MenuItem undoMenuItem;
+    private MenuItem redoMenuItem;
 
     public AssistantScreen(PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider, Skin skin) {
         assistantPreferences = new AssistantPreferences(Gdx.app.getPreferences("gdx-assistant.preferences"));
@@ -65,9 +70,14 @@ public class AssistantScreen extends VisTable {
 
         tabbedPane = new GTabbedPane<>();
 
-        MenuBar menuBar = createMenuBar();
+        menuBar = createMenuBar();
+
+        statusBar = new VisLabel("", "status-bar");
+        statusBar.setEllipsis("...");
+
         add(menuBar.getTable()).growX().row();
         add(tabbedPane).grow().row();
+        add(statusBar).growX().row();
 
         addListener(
                 new InputListener() {
@@ -76,9 +86,18 @@ public class AssistantScreen extends VisTable {
                         boolean ctrlPressed = OsUtils.isMac() ?
                                 Gdx.input.isKeyPressed(Input.Keys.SYM) :
                                 Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT);
-                        if (ctrlPressed) {
-                            Runnable runnable = shortcuts.get(keycode);
+                        boolean shiftPressed = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT);
+
+                        if (ctrlPressed && !shiftPressed) {
+                            Runnable runnable = controlShortcuts.get(keycode);
                             if (runnable != null) {
+                                runnable.run();
+                                return true;
+                            }
+                        }
+                        if (ctrlPressed && shiftPressed) {
+                            Runnable runnable = controlShiftShortcuts.get(keycode);
+                            if (runnable!=null) {
                                 runnable.run();
                                 return true;
                             }
@@ -86,9 +105,27 @@ public class AssistantScreen extends VisTable {
                         return false;
                     }
                 });
+
+        assistantUndoManager = new AssistantUndoManager(undoMenuItem, redoMenuItem);
+    }
+
+    @Override
+    public void act(float delta) {
+        super.act(delta);
+        assistantUndoManager.update();
+    }
+
+    private void undo() {
+        assistantUndoManager.undo();
+    }
+
+    private void redo() {
+        assistantUndoManager.redo();
     }
 
     private FileHandle getProjectFolder() {
+        if (projectFile == null)
+            return null;
         return projectFile.parent();
     }
 
@@ -97,99 +134,128 @@ public class AssistantScreen extends VisTable {
     }
 
     private MenuBar createMenuBar() {
-        menuBar = new MenuBar();
+        MenuBar menuBar = new MenuBar();
         menuBar.addMenu(createFileMenu());
+        menuBar.addMenu(createEditMenu());
 
         return menuBar;
+    }
+
+    private Menu createEditMenu() {
+        Menu editMenu = new Menu("Edit");
+
+        undoMenuItem = new MenuItem("Undo");
+        ChangeListener undoListener = new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                undo();
+            }
+        };
+        undoMenuItem.addListener(undoListener);
+        addControlShortcut(Input.Keys.Z, undoMenuItem, undoListener);
+        editMenu.addItem(undoMenuItem);
+
+        redoMenuItem = new MenuItem("Redo");
+        ChangeListener redoListener = new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                redo();
+            }
+        };
+        redoMenuItem.addListener(redoListener);
+        addControlShiftShortcut(Input.Keys.Z, redoMenuItem, redoListener);
+        editMenu.addItem(redoMenuItem);
+
+        return editMenu;
     }
 
     private Menu createFileMenu() {
         Menu fileMenu = new Menu("File");
 
-        MenuItem newItem = new MenuItem("New project");
-        newItem.addListener(
+        newMenuItem = new MenuItem("New project");
+        newMenuItem.addListener(
                 new ChangeListener() {
                     @Override
                     public void changed(ChangeEvent event, Actor actor) {
                         newProject();
                     }
                 });
-        fileMenu.addItem(newItem);
+        fileMenu.addItem(newMenuItem);
 
-        MenuItem open = new MenuItem("Open project");
-        open.addListener(
+        openMenuItem = new MenuItem("Open project");
+        openMenuItem.addListener(
                 new ChangeListener() {
                     @Override
                     public void changed(ChangeEvent event, Actor actor) {
                         openProject();
                     }
                 });
-        fileMenu.addItem(open);
+        fileMenu.addItem(openMenuItem);
 
-        recentProjects = new MenuItem("Recent projects");
+        recentProjectsMenuItem = new MenuItem("Recent projects");
         PopupMenu recentProjectPopup = new PopupMenu();
-        recentProjects.setSubMenu(recentProjectPopup);
+        recentProjectsMenuItem.setSubMenu(recentProjectPopup);
         rebuildRecentProjectsMenu();
-        fileMenu.addItem(recentProjects);
+        fileMenu.addItem(recentProjectsMenuItem);
 
-        saveMenu = new MenuItem("Save project");
+        saveMenuItem = new MenuItem("Save project");
         ChangeListener saveListener = new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 saveProject();
             }
         };
-        saveMenu.setDisabled(true);
-        addControlShortcut(Input.Keys.S, saveMenu, saveListener);
-        saveMenu.addListener(saveListener);
-        fileMenu.addItem(saveMenu);
+        saveMenuItem.setDisabled(true);
+        addControlShortcut(Input.Keys.S, saveMenuItem, saveListener);
+        saveMenuItem.addListener(saveListener);
+        fileMenu.addItem(saveMenuItem);
 
-        saveAsMenu = new MenuItem("Save As");
-        saveAsMenu.addListener(
+        saveAsMenuItem = new MenuItem("Save As");
+        saveAsMenuItem.addListener(
                 new ChangeListener() {
                     @Override
                     public void changed(ChangeEvent event, Actor actor) {
                         saveProjectAs();
                     }
                 });
-        saveAsMenu.setDisabled(true);
-        fileMenu.addItem(saveAsMenu);
+        saveAsMenuItem.setDisabled(true);
+        fileMenu.addItem(saveAsMenuItem);
 
         fileMenu.addSeparator();
 
-        closeMenu = new MenuItem("Close project");
-        closeMenu.addListener(
+        closeMenuItem = new MenuItem("Close project");
+        closeMenuItem.addListener(
                 new ChangeListener() {
                     @Override
                     public void changed(ChangeEvent event, Actor actor) {
                         closeProject();
                     }
                 });
-        closeMenu.setDisabled(true);
-        fileMenu.addItem(closeMenu);
+        closeMenuItem.setDisabled(true);
+        fileMenu.addItem(closeMenuItem);
 
         fileMenu.addSeparator();
 
-        MenuItem exit = new MenuItem("Exit");
-        exit.addListener(
+        exitMenuItem = new MenuItem("Exit");
+        exitMenuItem.addListener(
                 new ChangeListener() {
                     @Override
                     public void changed(ChangeEvent event, Actor actor) {
                         closeApplication();
                     }
                 });
-        fileMenu.addItem(exit);
+        fileMenu.addItem(exitMenuItem);
 
         return fileMenu;
     }
 
     private void rebuildRecentProjectsMenu() {
-        PopupMenu popupMenu = recentProjects.getSubMenu();
+        PopupMenu popupMenu = recentProjectsMenuItem.getSubMenu();
         popupMenu.clearChildren();
 
         List<FileHandle> recentProjectList = assistantPreferences.getRecentProjects();
         if (recentProjectList.isEmpty()) {
-            recentProjects.setDisabled(true);
+            recentProjectsMenuItem.setDisabled(true);
         } else {
             for (FileHandle fileHandle : recentProjectList) {
                 MenuItem recentProject = new MenuItem(fileHandle.name());
@@ -202,13 +268,24 @@ public class AssistantScreen extends VisTable {
                         });
                 popupMenu.addItem(recentProject);
             }
-            recentProjects.setDisabled(false);
+            recentProjectsMenuItem.setDisabled(false);
         }
     }
 
     private void addControlShortcut(int key, final MenuItem menuItem, final ChangeListener listener) {
         menuItem.setShortcut(Input.Keys.CONTROL_LEFT, key);
-        shortcuts.put(key, new Runnable() {
+        controlShortcuts.put(key, new Runnable() {
+            @Override
+            public void run() {
+                if (!menuItem.isDisabled())
+                    listener.changed(null, null);
+            }
+        });
+    }
+
+    private void addControlShiftShortcut(int key, final MenuItem menuItem, final ChangeListener listener) {
+        menuItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.SHIFT_LEFT, key);
+        controlShortcuts.put(key, new Runnable() {
             @Override
             public void run() {
                 if (!menuItem.isDisabled())
@@ -227,9 +304,9 @@ public class AssistantScreen extends VisTable {
             currentProject.newProjectCreated(pluginsProvider);
             Gdx.graphics.setTitle("Gdx Assistant - (new project)");
 
-            saveMenu.setDisabled(false);
-            saveAsMenu.setDisabled(false);
-            closeMenu.setDisabled(false);
+            saveMenuItem.setDisabled(false);
+            saveAsMenuItem.setDisabled(false);
+            closeMenuItem.setDisabled(false);
         }
     }
 
@@ -253,9 +330,9 @@ public class AssistantScreen extends VisTable {
 
                     setProjectFile(selectedFile);
 
-                    saveMenu.setDisabled(false);
-                    saveAsMenu.setDisabled(false);
-                    closeMenu.setDisabled(false);
+                    saveMenuItem.setDisabled(false);
+                    saveAsMenuItem.setDisabled(false);
+                    closeMenuItem.setDisabled(false);
                 }
             });
             getStage().addActor(fileChooser.fadeIn());
@@ -272,9 +349,9 @@ public class AssistantScreen extends VisTable {
             setProjectFile(project);
             currentProject.openProject(project, pluginsProvider);
 
-            saveMenu.setDisabled(false);
-            saveAsMenu.setDisabled(false);
-            closeMenu.setDisabled(false);
+            saveMenuItem.setDisabled(false);
+            saveAsMenuItem.setDisabled(false);
+            closeMenuItem.setDisabled(false);
         }
     }
 
@@ -317,22 +394,8 @@ public class AssistantScreen extends VisTable {
         getStage().addActor(fileChooser.fadeIn());
     }
 
-    private AssistantTab addTab(AssistantApplication assistantApplication, String title, Table content, AssistantPluginTab tab) {
-        AssistantTabFromPlugin resultTab = new AssistantTabFromPlugin(assistantApplication, currentProject, tabbedPane, title, content, tab);
-        tabbedPane.addTab(resultTab);
-        return new AssistantTab() {
-            @Override
-            public void setTitle(String title) {
-                resultTab.setTitle(title);
-            }
-
-            @Override
-            public void closeTab() {
-                if (lastTab == resultTab)
-                    lastTab = null;
-                tabbedPane.closeTab(resultTab);
-            }
-        };
+    private void addTab(AssistantApplication assistantApplication, String title, Table content, AssistantPluginTab tab) {
+        tabbedPane.addTab(new AssistantTabFromPlugin(assistantApplication, currentProject, tabbedPane, title, content, tab));
     }
 
     private void switchToTab(AssistantPluginTab tab) {
@@ -432,190 +495,275 @@ public class AssistantScreen extends VisTable {
     }
 
     public AssistantApplication createApplicationForPlugin(AssistantPlugin assistantPlugin) {
-        return new AssistantApplication() {
-            private ObjectMap<String, Menu> pluginMenus = new ObjectMap<>();
-            private ObjectMap<String, MenuItem> popupMenuItems = new ObjectMap<>();
-            private ObjectMap<String, MenuItem> menuItems = new ObjectMap<>();
-            private ObjectMap<String, Runnable> listeners = new ObjectMap<>();
+        return new PluginAssistantApplication(assistantPlugin);
+    }
 
-            @Override
-            public FileHandle getProjectFolder() {
-                return AssistantScreen.this.getProjectFolder();
-            }
+    private class PluginAssistantApplication implements AssistantApplication {
+        private final AssistantPlugin plugin;
+        private final TabManager tabManager;
+        private final MenuManager menuManager;
+        private final StatusManager statusManager;
 
-            @Override
-            public Skin getApplicationSkin() {
-                return AssistantScreen.this.getApplicationSkin();
-            }
+        public PluginAssistantApplication(AssistantPlugin plugin) {
+            this.plugin = plugin;
+            this.tabManager = new PluginTabManager(this, plugin);
+            this.menuManager = new PluginMenuManager(plugin);
+            this.statusManager = new PluginStatusManager(plugin);
+        }
 
-            @Override
-            public boolean addMainMenu(String name) {
-                if (pluginMenus.containsKey(name))
-                    return false;
-                Menu menu = new Menu(name);
-                menuBar.addMenu(menu);
-                pluginMenus.put(name, menu);
-                return true;
-            }
+        @Override
+        public TabManager getTabManager() {
+            return tabManager;
+        }
 
-            @Override
-            public boolean addPopupMenu(String mainMenu, String path, String name) {
-                Menu menu = pluginMenus.get(mainMenu);
-                if (menu == null)
-                    return false;
+        @Override
+        public MenuManager getMenuManager() {
+            return menuManager;
+        }
 
-                String key = mainMenu + "/" + ((path != null) ? path + "/" : "") + name;
-                if (popupMenuItems.containsKey(key))
-                    return false;
+        @Override
+        public StatusManager getStatusManager() {
+            return statusManager;
+        }
 
-                MenuItem menuItem = new MenuItem(name);
-                PopupMenu popupMenu = new PopupMenu();
-                menuItem.setSubMenu(popupMenu);
+        @Override
+        public UndoManager getUndoManager() {
+            return assistantUndoManager;
+        }
 
-                if (path == null) {
-                    menu.addItem(menuItem);
-                } else {
-                    MenuItem parentMenuItem = popupMenuItems.get(mainMenu + "/" + path);
-                    if (parentMenuItem == null)
-                        return false;
-                    parentMenuItem.getSubMenu().addItem(menuItem);
+        @Override
+        public FileHandle getProjectFolder() {
+            return AssistantScreen.this.getProjectFolder();
+        }
+
+        @Override
+        public Skin getApplicationSkin() {
+            return AssistantScreen.this.getApplicationSkin();
+        }
+
+        @Override
+        public void addWindow(Window window) {
+            AssistantScreen.this.getStage().addActor(window);
+        }
+    }
+
+    private class PluginTabManager implements TabManager {
+        private final AssistantApplication application;
+        private final AssistantPlugin plugin;
+
+        public PluginTabManager(AssistantApplication application, AssistantPlugin plugin) {
+            this.application = application;
+            this.plugin = plugin;
+        }
+
+        @Override
+        public void addTab(String title, Table content, AssistantPluginTab tab) {
+            AssistantScreen.this.addTab(application, title, content, tab);
+        }
+
+        @Override
+        public void switchToTab(AssistantPluginTab tab) {
+            AssistantScreen.this.switchToTab(tab);
+        }
+
+        @Override
+        public void setTabTitle(AssistantPluginTab tab, String title) {
+            for (AssistantTabFromPlugin tabbedPaneTab : tabbedPane.getTabs()) {
+                if (tabbedPaneTab.getTab() == tab) {
+                    tabbedPaneTab.setTitle(title);
+                    break;
                 }
-                popupMenuItems.put(key, menuItem);
-                return true;
             }
+        }
 
-            @Override
-            public boolean addMenuItem(String mainMenu, String popupPath, String name, Runnable runnable) {
-                Menu menu = pluginMenus.get(mainMenu);
-                if (menu == null)
-                    return false;
-
-                String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
-                if (menuItems.containsKey(key))
-                    return false;
-
-                MenuItem menuItem = new MenuItem(name);
-
-                if (popupPath == null) {
-                    menu.addItem(menuItem);
-                } else {
-                    MenuItem parentMenuItem = popupMenuItems.get(mainMenu + "/" + popupPath);
-                    if (parentMenuItem == null)
-                        return false;
-                    parentMenuItem.getSubMenu().addItem(menuItem);
+        @Override
+        public void closeTab(AssistantPluginTab tab) {
+            for (AssistantTabFromPlugin tabbedPaneTab : tabbedPane.getTabs()) {
+                if (tabbedPaneTab.getTab() == tab) {
+                    tabbedPane.closeTab(tabbedPaneTab);
+                    break;
                 }
-                menuItem.addListener(
-                        new ChangeListener() {
-                            @Override
-                            public void changed(ChangeEvent event, Actor actor) {
-                                Runnable listener = listeners.get(key);
-                                if (listener != null)
-                                    listener.run();
-                            }
-                        });
-                menuItems.put(key, menuItem);
-                listeners.put(key, runnable);
-                return true;
             }
+        }
+    }
 
-            @Override
-            public boolean updateMenuItemListener(String mainMenu, String popupPath, String name, Runnable runnable) {
-                Menu menu = pluginMenus.get(mainMenu);
-                if (menu == null)
+    private class PluginMenuManager implements MenuManager {
+        private final AssistantPlugin plugin;
+
+        private final ObjectMap<String, Menu> pluginMenus = new ObjectMap<>();
+        private final ObjectMap<String, MenuItem> popupMenuItems = new ObjectMap<>();
+        private final ObjectMap<String, MenuItem> menuItems = new ObjectMap<>();
+        private final ObjectMap<String, Runnable> listeners = new ObjectMap<>();
+
+        public PluginMenuManager(AssistantPlugin plugin) {
+            this.plugin = plugin;
+        }
+
+        @Override
+        public boolean addMainMenu(String name) {
+            if (pluginMenus.containsKey(name))
+                return false;
+            Menu menu = new Menu(name);
+            menuBar.addMenu(menu);
+            pluginMenus.put(name, menu);
+            return true;
+        }
+
+        @Override
+        public boolean addPopupMenu(String mainMenu, String path, String name) {
+            Menu menu = pluginMenus.get(mainMenu);
+            if (menu == null)
+                return false;
+
+            String key = mainMenu + "/" + ((path != null) ? path + "/" : "") + name;
+            if (popupMenuItems.containsKey(key))
+                return false;
+
+            MenuItem menuItem = new MenuItem(name);
+            PopupMenu popupMenu = new PopupMenu();
+            menuItem.setSubMenu(popupMenu);
+
+            if (path == null) {
+                menu.addItem(menuItem);
+            } else {
+                MenuItem parentMenuItem = popupMenuItems.get(mainMenu + "/" + path);
+                if (parentMenuItem == null)
                     return false;
+                parentMenuItem.getSubMenu().addItem(menuItem);
+            }
+            popupMenuItems.put(key, menuItem);
+            return true;
+        }
 
-                String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
-                if (!menuItems.containsKey(key))
+        @Override
+        public boolean addMenuItem(String mainMenu, String popupPath, String name, Runnable runnable) {
+            Menu menu = pluginMenus.get(mainMenu);
+            if (menu == null)
+                return false;
+
+            String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
+            if (menuItems.containsKey(key))
+                return false;
+
+            MenuItem menuItem = new MenuItem(name);
+            if (popupPath == null) {
+                menu.addItem(menuItem);
+            } else {
+                MenuItem parentMenuItem = popupMenuItems.get(mainMenu + "/" + popupPath);
+                if (parentMenuItem == null)
                     return false;
-
-                listeners.put(key, runnable);
-                return true;
+                parentMenuItem.getSubMenu().addItem(menuItem);
             }
+            menuItem.addListener(
+                    new ChangeListener() {
+                        @Override
+                        public void changed(ChangeEvent event, Actor actor) {
+                            Runnable listener = listeners.get(key);
+                            if (listener != null)
+                                listener.run();
+                        }
+                    });
+            menuItems.put(key, menuItem);
+            listeners.put(key, runnable);
+            return true;
+        }
 
-            @Override
-            public boolean addMenuSeparator(String mainMenu, String popupPath) {
-                Menu menu = pluginMenus.get(mainMenu);
-                if (menu == null)
+        @Override
+        public boolean updateMenuItemListener(String mainMenu, String popupPath, String name, Runnable runnable) {
+            Menu menu = pluginMenus.get(mainMenu);
+            if (menu == null)
+                return false;
+
+            String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
+            if (!menuItems.containsKey(key))
+                return false;
+
+            listeners.put(key, runnable);
+            return true;
+        }
+
+        @Override
+        public boolean addMenuSeparator(String mainMenu, String popupPath) {
+            Menu menu = pluginMenus.get(mainMenu);
+            if (menu == null)
+                return false;
+
+            if (popupPath == null) {
+                menu.addSeparator();
+            } else {
+                String parentKey = mainMenu + "/" + popupPath;
+                MenuItem parentPopup = popupMenuItems.get(parentKey);
+                if (parentPopup == null)
                     return false;
+                parentPopup.getSubMenu().addSeparator();
+            }
+            return true;
+        }
 
-                if (popupPath == null) {
-                    menu.addSeparator();
-                } else {
-                    String parentKey = mainMenu + "/" + popupPath;
-                    MenuItem parentPopup = popupMenuItems.get(parentKey);
-                    if (parentPopup == null)
-                        return false;
-                    parentPopup.getSubMenu().addSeparator();
-                }
-                return true;
+        @Override
+        public boolean setMenuItemDisabled(String mainMenu, String popupPath, String name, boolean disabled) {
+            return setMenuDisabled(mainMenu, popupPath, name, disabled, menuItems);
+        }
+
+        @Override
+        public boolean setPopupMenuDisabled(String mainMenu, String popupPath, String name, boolean disabled) {
+            return setMenuDisabled(mainMenu, popupPath, name, disabled, popupMenuItems);
+        }
+
+        @Override
+        public boolean clearPopupMenuContents(String mainMenu, String popupPath, String name) {
+            Menu menu = pluginMenus.get(mainMenu);
+            if (menu == null)
+                return false;
+
+            String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
+            MenuItem popupMenuItem = popupMenuItems.get(key);
+            if (popupMenuItem == null)
+                return false;
+            popupMenuItem.getSubMenu().clearChildren();
+
+            ObjectMap.Entries<String, MenuItem> popupsIterator = popupMenuItems.entries().iterator();
+            while (popupsIterator.hasNext()) {
+                ObjectMap.Entry<String, MenuItem> popupEntry = popupsIterator.next();
+                if (popupEntry.key.startsWith(key + "/"))
+                    popupsIterator.remove();
+            }
+            ObjectMap.Entries<String, MenuItem> menuItemsIterator = menuItems.entries().iterator();
+            while (menuItemsIterator.hasNext()) {
+                ObjectMap.Entry<String, MenuItem> menuItemEntry = menuItemsIterator.next();
+                if (menuItemEntry.key.startsWith(key + "/"))
+                    menuItemsIterator.remove();
             }
 
-            @Override
-            public boolean setMenuItemDisabled(String mainMenu, String popupPath, String name, boolean disabled) {
-                return setMenuDisabled(mainMenu, popupPath, name, disabled, menuItems);
-            }
+            return true;
+        }
 
-            @Override
-            public boolean setPopupMenuDisabled(String mainMenu, String popupPath, String name, boolean disabled) {
-                return setMenuDisabled(mainMenu, popupPath, name, disabled, popupMenuItems);
-            }
+        private boolean setMenuDisabled(String mainMenu, String popupPath, String name, boolean disabled, ObjectMap<String, MenuItem> items) {
+            String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
+            MenuItem menuItem = items.get(key);
+            if (menuItem == null)
+                return false;
+            menuItem.setDisabled(disabled);
+            return true;
+        }
+    }
 
-            @Override
-            public boolean clearPopupMenuContents(String mainMenu, String popupPath, String name) {
-                Menu menu = pluginMenus.get(mainMenu);
-                if (menu == null)
-                    return false;
+    private class PluginStatusManager implements StatusManager {
+        private AssistantPlugin plugin;
 
-                String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
-                MenuItem popupMenuItem = popupMenuItems.get(key);
-                if (popupMenuItem == null)
-                    return false;
-                popupMenuItem.getSubMenu().clearChildren();
+        public PluginStatusManager(AssistantPlugin plugin) {
+            this.plugin = plugin;
+        }
 
-                ObjectMap.Entries<String, MenuItem> popupsIterator = popupMenuItems.entries().iterator();
-                while (popupsIterator.hasNext()) {
-                    ObjectMap.Entry<String, MenuItem> popupEntry = popupsIterator.next();
-                    if (popupEntry.key.startsWith(key + "/"))
-                        popupsIterator.remove();
-                }
-                ObjectMap.Entries<String, MenuItem> menuItemsIterator = menuItems.entries().iterator();
-                while (menuItemsIterator.hasNext()) {
-                    ObjectMap.Entry<String, MenuItem> menuItemEntry = menuItemsIterator.next();
-                    if (menuItemEntry.key.startsWith(key + "/"))
-                        menuItemsIterator.remove();
-                }
+        @Override
+        public String addStatus(String status) {
+            statusBar.setText(" " + status);
+            return "statusId";
+        }
 
-                return true;
-            }
-
-            private boolean setMenuDisabled(String mainMenu, String popupPath, String name, boolean disabled, ObjectMap<String, MenuItem> items) {
-                String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
-                MenuItem menuItem = items.get(key);
-                if (menuItem == null)
-                    return false;
-                menuItem.setDisabled(disabled);
-                return true;
-            }
-
-            @Override
-            public AssistantTab addTab(String title, Table content, AssistantPluginTab tab) {
-                return AssistantScreen.this.addTab(this, title, content, tab);
-            }
-
-            @Override
-            public void switchToTab(AssistantPluginTab tab) {
-                AssistantScreen.this.switchToTab(tab);
-            }
-
-            @Override
-            public void addWindow(Window window) {
-                AssistantScreen.this.getStage().addActor(window);
-            }
-
-            @Override
-            public FileHandle getInternalResource(String name) {
-                return Gdx.files.internal(name);
-            }
-        };
+        @Override
+        public void updateStatus(String statusId, String status) {
+            statusBar.setText(" " + status);
+        }
     }
 }

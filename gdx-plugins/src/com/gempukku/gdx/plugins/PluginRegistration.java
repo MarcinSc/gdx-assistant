@@ -43,8 +43,13 @@ public class PluginRegistration<T, U extends Plugin<T>> {
         } while (changed);
 
         for (U value : chosenToRegister.values()) {
-            value.registerPlugin(pluginApplicationProvider.apply(value));
+            value.registerPlugin();
             registeredPlugins.add(value);
+        }
+
+        for (U registeredPlugin : registeredPlugins) {
+            T application = pluginApplicationProvider.apply(registeredPlugin);
+            registeredPlugin.initializePlugin(application);
         }
     }
 

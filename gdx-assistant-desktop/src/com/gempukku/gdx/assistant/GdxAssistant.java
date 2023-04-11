@@ -39,9 +39,9 @@ public class GdxAssistant extends ApplicationAdapter {
 		pluginsProvider.loadPlugins();
 		Gdx.files = pluginsProvider.getPluginFiles();
 
-		VisUI.load(Gdx.files.internal("skin/visui/uiskin.json"));
+		skin = new Skin(Gdx.files.internal("skin/visui/uiskin.json"));
+		VisUI.load(skin);
 
-		skin = new Skin(VisUI.SkinScale.X1.getSkinFile());
 		viewport = new ScreenViewport();
 		viewport.setUnitsPerPixel(uiScale);
 		stage = new Stage(viewport);

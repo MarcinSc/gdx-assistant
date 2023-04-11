@@ -1,10 +1,7 @@
 package com.gempukku.gdx.assistant.test.plugin;
 
 import com.badlogic.gdx.utils.JsonValue;
-import com.gempukku.gdx.assistant.plugin.AssistantApplication;
-import com.gempukku.gdx.assistant.plugin.AssistantPlugin;
-import com.gempukku.gdx.assistant.plugin.AssistantPluginProject;
-import com.gempukku.gdx.assistant.plugin.AssistantPluginTab;
+import com.gempukku.gdx.assistant.plugin.*;
 import com.gempukku.gdx.plugins.PluginEnvironment;
 import com.gempukku.gdx.plugins.PluginVersion;
 import com.kotcrab.vis.ui.widget.VisTable;
@@ -14,12 +11,12 @@ public class TestAssistantPlugin implements AssistantPlugin {
 
     @Override
     public AssistantPluginProject newProjectCreated() {
-        return new TestAssistantPluginProject();
+        return new TestAssistantPluginProject(application);
     }
 
     @Override
     public AssistantPluginProject projectOpened(JsonValue pluginData) {
-        return new TestAssistantPluginProject(pluginData);
+        return new TestAssistantPluginProject(application, pluginData);
     }
 
     @Override
@@ -38,26 +35,32 @@ public class TestAssistantPlugin implements AssistantPlugin {
     }
 
     @Override
-    public void registerPlugin(AssistantApplication pluggableApplication) {
+    public void registerPlugin() {
+
+    }
+
+    @Override
+    public void initializePlugin(AssistantApplication pluggableApplication) {
         this.application = pluggableApplication;
 
-        application.addMainMenu("Test");
-        application.addMenuItem("Test", null, "Test",
+        MenuManager menuManager = application.getMenuManager();
+        menuManager.addMainMenu("Test");
+        menuManager.addMenuItem("Test", null, "Test",
                 new Runnable() {
                     public void run() {
                         System.out.println("Test pressed");
                     }
                 });
-        application.addPopupMenu("Test", null, "Test");
-        application.addMenuItem("Test", "Test", "Sub-test",
+        menuManager.addPopupMenu("Test", null, "Test");
+        menuManager.addMenuItem("Test", "Test", "Sub-test",
                 new Runnable() {
                     @Override
                     public void run() {
                         System.out.println("Sub-test pressed");
                     }
                 });
-        application.addMenuSeparator("Test", "Test");
-        application.addMenuItem("Test", "Test", "Sub-test2",
+        menuManager.addMenuSeparator("Test", "Test");
+        menuManager.addMenuItem("Test", "Test", "Sub-test2",
                 new Runnable() {
                     @Override
                     public void run() {
@@ -68,10 +71,12 @@ public class TestAssistantPlugin implements AssistantPlugin {
         addTestTab("Test1", true);
         addTestTab("Test2", false);
         addTestTab("Test3", true);
+
+        application.getStatusManager().addStatus("Test plugin registered");
     }
 
     private void addTestTab(String title, boolean dirty) {
-        application.addTab(title, new VisTable(),
+        application.getTabManager().addTab(title, new VisTable(),
                 new AssistantPluginTab() {
                     @Override
                     public boolean isDirty() {
