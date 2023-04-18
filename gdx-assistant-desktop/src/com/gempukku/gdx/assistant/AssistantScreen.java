@@ -50,7 +50,6 @@ public class AssistantScreen extends VisTable {
     private MenuItem openMenuItem;
     private MenuItem recentProjectsMenuItem;
     private MenuItem saveMenuItem;
-    private MenuItem saveAsMenuItem;
     private MenuItem closeMenuItem;
     private MenuItem exitMenuItem;
 
@@ -214,17 +213,6 @@ public class AssistantScreen extends VisTable {
         saveMenuItem.addListener(saveListener);
         fileMenu.addItem(saveMenuItem);
 
-        saveAsMenuItem = new MenuItem("Save As");
-        saveAsMenuItem.addListener(
-                new ChangeListener() {
-                    @Override
-                    public void changed(ChangeEvent event, Actor actor) {
-                        saveProjectAs();
-                    }
-                });
-        saveAsMenuItem.setDisabled(true);
-        fileMenu.addItem(saveAsMenuItem);
-
         fileMenu.addSeparator();
 
         closeMenuItem = new MenuItem("Close project");
@@ -282,7 +270,7 @@ public class AssistantScreen extends VisTable {
                 new Runnable() {
                     @Override
                     public void run() {
-                        if (!menuItem.isDisabled())
+                        if (!menuItem.isDisabled() && listener != null)
                             listener.run();
                     }
                 });
@@ -290,23 +278,39 @@ public class AssistantScreen extends VisTable {
 
     private void newProject() {
         if (currentProject != null && currentProject.isDirty()) {
-            Dialogs.showErrorDialog(getStage(), "Current pipeline has been modified, close it or save it");
+            Dialogs.showErrorDialog(getStage(), "Current project has been modified, close it or save it");
         } else {
             closeProject();
 
-            currentProject = new AssistantProject();
-            currentProject.newProjectCreated(pluginsProvider);
-            Gdx.graphics.setTitle("Gdx Assistant - (new project)");
+            FileChooser fileChooser = new FileChooser(FileChooser.Mode.SAVE);
+            fileChooser.setFileTypeFilter(assistantProjectsFilter);
+            fileChooser.setModal(true);
+            fileChooser.setSelectionMode(FileChooser.SelectionMode.FILES);
+            fileChooser.setListener(new FileChooserAdapter() {
+                @Override
+                public void selected(Array<FileHandle> file) {
+                    currentProject = new AssistantProject();
+                    currentProject.newProjectCreated(pluginsProvider);
 
-            saveMenuItem.setDisabled(false);
-            saveAsMenuItem.setDisabled(false);
-            closeMenuItem.setDisabled(false);
+                    saveMenuItem.setDisabled(false);
+                    closeMenuItem.setDisabled(false);
+
+                    FileHandle selectedFile = file.get(0);
+                    if (!selectedFile.name().toLowerCase().endsWith("." + projectFileExtension)) {
+                        selectedFile = selectedFile.parent().child(selectedFile.name() + "." + projectFileExtension);
+                    }
+
+                    saveProjectToFile(selectedFile);
+                    setProjectFile(selectedFile);
+                }
+            });
+            getStage().addActor(fileChooser.fadeIn());
         }
     }
 
     private void openProject() {
         if (currentProject != null && currentProject.isDirty()) {
-            Dialogs.showErrorDialog(getStage(), "Current pipeline has been modified, close it or save it");
+            Dialogs.showErrorDialog(getStage(), "Current project has been modified, close it or save it");
         } else {
             closeProject();
 
@@ -325,7 +329,6 @@ public class AssistantScreen extends VisTable {
                     setProjectFile(selectedFile);
 
                     saveMenuItem.setDisabled(false);
-                    saveAsMenuItem.setDisabled(false);
                     closeMenuItem.setDisabled(false);
                 }
             });
@@ -335,7 +338,7 @@ public class AssistantScreen extends VisTable {
 
     private void openProject(FileHandle project) {
         if (currentProject != null && currentProject.isDirty()) {
-            Dialogs.showErrorDialog(getStage(), "Current pipeline has been modified, close it or save it");
+            Dialogs.showErrorDialog(getStage(), "Current project has been modified, close it or save it");
         } else {
             closeProject();
 
@@ -344,18 +347,13 @@ public class AssistantScreen extends VisTable {
             currentProject.openProject(project, pluginsProvider);
 
             saveMenuItem.setDisabled(false);
-            saveAsMenuItem.setDisabled(false);
             closeMenuItem.setDisabled(false);
         }
     }
 
     private void saveProject() {
         if (currentProject != null) {
-            if (projectFile != null) {
-                saveProjectToFile(projectFile);
-            } else {
-                saveProjectAs();
-            }
+            saveProjectToFile(projectFile);
         }
     }
 
@@ -367,25 +365,6 @@ public class AssistantScreen extends VisTable {
         } catch (IOException exp) {
             exp.printStackTrace();
         }
-    }
-
-    private void saveProjectAs() {
-        FileChooser fileChooser = new FileChooser(FileChooser.Mode.SAVE);
-        fileChooser.setFileTypeFilter(assistantProjectsFilter);
-        fileChooser.setModal(true);
-        fileChooser.setSelectionMode(FileChooser.SelectionMode.FILES);
-        fileChooser.setListener(new FileChooserAdapter() {
-            @Override
-            public void selected(Array<FileHandle> file) {
-                FileHandle selectedFile = file.get(0);
-                if (!selectedFile.name().toLowerCase().endsWith("." + projectFileExtension)) {
-                    selectedFile = selectedFile.parent().child(selectedFile.name() + "." + projectFileExtension);
-                }
-                saveProjectToFile(selectedFile);
-                setProjectFile(selectedFile);
-            }
-        });
-        getStage().addActor(fileChooser.fadeIn());
     }
 
     private void addTab(AssistantApplication assistantApplication, String title, Table content, AssistantPluginTab tab) {
@@ -643,6 +622,11 @@ public class AssistantScreen extends VisTable {
 
         @Override
         public boolean addMenuItem(String mainMenu, String popupPath, String name, Runnable runnable) {
+            return addMenuItem(mainMenu, popupPath, name, null, runnable);
+        }
+
+        @Override
+        public boolean addMenuItem(String mainMenu, String popupPath, String name, KeyCombination keyCombination, Runnable runnable) {
             Menu menu = pluginMenus.get(mainMenu);
             if (menu == null)
                 return false;
@@ -669,6 +653,17 @@ public class AssistantScreen extends VisTable {
                                 listener.run();
                         }
                     });
+            if (keyCombination != null) {
+                shortcuts.put(keyCombination,
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                Runnable listener = listeners.get(key);
+                                if (!menuItem.isDisabled() && listener != null)
+                                    listener.run();
+                            }
+                        });
+            }
             menuItems.put(key, menuItem);
             listeners.put(key, runnable);
             return true;
@@ -685,33 +680,6 @@ public class AssistantScreen extends VisTable {
                 return false;
 
             listeners.put(key, runnable);
-            return true;
-        }
-
-        @Override
-        public boolean setMenuItemShortcut(String mainMenu, String popupPath, String name, KeyCombination keyCombination) {
-            Menu menu = pluginMenus.get(mainMenu);
-            if (menu == null)
-                return false;
-
-            String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
-            MenuItem menuItem = menuItems.get(key);
-            if (menuItem == null)
-                return false;
-
-            if (shortcuts.containsKey(keyCombination))
-                return false;
-
-            menuItem.setShortcut(keyCombination.getShortCutRepresentation());
-            shortcuts.put(keyCombination,
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            if (!menuItem.isDisabled())
-                                listeners.get(key).run();
-                        }
-                    });
-
             return true;
         }
 

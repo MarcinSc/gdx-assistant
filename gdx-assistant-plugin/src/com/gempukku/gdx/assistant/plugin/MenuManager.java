@@ -9,6 +9,8 @@ public interface MenuManager {
 
     boolean addMenuItem(String mainMenu, String popupPath, String name, Runnable runnable);
 
+    boolean addMenuItem(String mainMenu, String popupPath, String name, KeyCombination keyCombination, Runnable runnable);
+
     boolean addMenuSeparator(String mainMenu, String popupPath);
 
     boolean setMenuItemDisabled(String mainMenu, String popupPath, String name, boolean disabled);
@@ -18,6 +20,4 @@ public interface MenuManager {
     boolean clearPopupMenuContents(String mainMenu, String popupPath, String name);
 
     boolean updateMenuItemListener(String mainMenu, String popupPath, String name, Runnable runnable);
-
-    boolean setMenuItemShortcut(String mainMenu, String popupPath, String name, KeyCombination keyCombination);
 }
