@@ -13,7 +13,6 @@ buildscript {
 
 allprojects {
     apply plugin: "eclipse"
-    apply plugin: "maven-publish"
 
     version = "$gdxAssistantVersion"
     ext {
