@@ -702,9 +702,15 @@ public class AssistantScreen extends VisTable {
             if (shortcuts.containsKey(keyCombination))
                 return false;
 
-            Runnable listener = listeners.get(key);
-
-            setMenuShortcut(menuItem, keyCombination, listener);
+            menuItem.setShortcut(keyCombination.getShortCutRepresentation());
+            shortcuts.put(keyCombination,
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!menuItem.isDisabled())
+                                listeners.get(key).run();
+                        }
+                    });
 
             return true;
         }
