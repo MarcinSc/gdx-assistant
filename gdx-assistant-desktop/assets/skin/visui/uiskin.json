@@ -903,16 +903,5 @@
       "closeStyle": "close-tab",
       "closeStyleActive": "close-active-tab"
     }
-  },
-  "com.gempukku.libgdx.ui.curve.GCurveEditor$GCurveEditorStyle": {
-    "default": {
-      "background": "white"
-    }
-  },
-  "com.gempukku.libgdx.ui.gradient.GGradientEditor$GGradientEditorStyle": {
-    "default": {
-      "background": "darkGrey",
-      "tick": "white"
-    }
   }
 }
