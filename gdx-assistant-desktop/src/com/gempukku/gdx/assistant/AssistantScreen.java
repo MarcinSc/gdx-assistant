@@ -13,8 +13,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.*;
 import com.gempukku.gdx.assistant.plugin.*;
 import com.gempukku.gdx.plugins.PluginsProvider;
+import com.gempukku.libgdx.ui.input.KeyCombination;
 import com.gempukku.libgdx.ui.tabbedpane.GTabbedPane;
-import com.kotcrab.vis.ui.util.OsUtils;
 import com.kotcrab.vis.ui.util.dialog.Dialogs;
 import com.kotcrab.vis.ui.util.dialog.OptionDialogListener;
 import com.kotcrab.vis.ui.widget.*;
@@ -40,8 +40,7 @@ public class AssistantScreen extends VisTable {
     private final GTabbedPane<AssistantTabFromPlugin> tabbedPane;
     private final VisLabel statusBar;
 
-    private final IntMap<Runnable> controlShortcuts = new IntMap<>();
-    private final IntMap<Runnable> controlShiftShortcuts = new IntMap<>();
+    private ObjectMap<KeyCombination, Runnable> shortcuts = new ObjectMap<>();
 
     private AssistantProject currentProject;
     private FileHandle projectFile;
@@ -83,22 +82,9 @@ public class AssistantScreen extends VisTable {
                 new InputListener() {
                     @Override
                     public boolean keyDown(InputEvent event, int keycode) {
-                        boolean ctrlPressed = OsUtils.isMac() ?
-                                Gdx.input.isKeyPressed(Input.Keys.SYM) :
-                                Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT);
-                        boolean shiftPressed = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT);
-
-                        if (ctrlPressed && !shiftPressed) {
-                            Runnable runnable = controlShortcuts.get(keycode);
-                            if (runnable != null) {
-                                runnable.run();
-                                return true;
-                            }
-                        }
-                        if (ctrlPressed && shiftPressed) {
-                            Runnable runnable = controlShiftShortcuts.get(keycode);
-                            if (runnable!=null) {
-                                runnable.run();
+                        for (ObjectMap.Entry<KeyCombination, Runnable> shortcut : shortcuts) {
+                            if (shortcut.key.isActivated(Gdx.input, keycode)) {
+                                shortcut.value.run();
                                 return true;
                             }
                         }
@@ -152,7 +138,13 @@ public class AssistantScreen extends VisTable {
             }
         };
         undoMenuItem.addListener(undoListener);
-        addControlShortcut(Input.Keys.Z, undoMenuItem, undoListener);
+        setMenuShortcut(undoMenuItem, new KeyCombination(true, false, false, Input.Keys.Z),
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        undo();
+                    }
+                });
         editMenu.addItem(undoMenuItem);
 
         redoMenuItem = new MenuItem("Redo");
@@ -163,7 +155,13 @@ public class AssistantScreen extends VisTable {
             }
         };
         redoMenuItem.addListener(redoListener);
-        addControlShiftShortcut(Input.Keys.Z, redoMenuItem, redoListener);
+        setMenuShortcut(redoMenuItem, new KeyCombination(true, true, false, Input.Keys.Z),
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        redo();
+                    }
+                });
         editMenu.addItem(redoMenuItem);
 
         return editMenu;
@@ -206,7 +204,13 @@ public class AssistantScreen extends VisTable {
             }
         };
         saveMenuItem.setDisabled(true);
-        addControlShortcut(Input.Keys.S, saveMenuItem, saveListener);
+        setMenuShortcut(saveMenuItem, new KeyCombination(true, false, false, Input.Keys.S),
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        saveProject();
+                    }
+                });
         saveMenuItem.addListener(saveListener);
         fileMenu.addItem(saveMenuItem);
 
@@ -272,26 +276,16 @@ public class AssistantScreen extends VisTable {
         }
     }
 
-    private void addControlShortcut(int key, final MenuItem menuItem, final ChangeListener listener) {
-        menuItem.setShortcut(Input.Keys.CONTROL_LEFT, key);
-        controlShortcuts.put(key, new Runnable() {
-            @Override
-            public void run() {
-                if (!menuItem.isDisabled())
-                    listener.changed(null, null);
-            }
-        });
-    }
-
-    private void addControlShiftShortcut(int key, final MenuItem menuItem, final ChangeListener listener) {
-        menuItem.setShortcut(Input.Keys.CONTROL_LEFT, Input.Keys.SHIFT_LEFT, key);
-        controlShortcuts.put(key, new Runnable() {
-            @Override
-            public void run() {
-                if (!menuItem.isDisabled())
-                    listener.changed(null, null);
-            }
-        });
+    private void setMenuShortcut(MenuItem menuItem, KeyCombination keyCombination, Runnable listener) {
+        menuItem.setShortcut(keyCombination.getShortCutRepresentation());
+        shortcuts.put(keyCombination,
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!menuItem.isDisabled())
+                            listener.run();
+                    }
+                });
     }
 
     private void newProject() {
@@ -679,6 +673,27 @@ public class AssistantScreen extends VisTable {
                 return false;
 
             listeners.put(key, runnable);
+            return true;
+        }
+
+        @Override
+        public boolean setMenuItemShortcut(String mainMenu, String popupPath, String name, KeyCombination keyCombination) {
+            Menu menu = pluginMenus.get(mainMenu);
+            if (menu == null)
+                return false;
+
+            String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
+            MenuItem menuItem = menuItems.get(key);
+            if (menuItem == null)
+                return false;
+
+            if (shortcuts.containsKey(keyCombination))
+                return false;
+
+            Runnable listener = listeners.get(key);
+
+            setMenuShortcut(menuItem, keyCombination, listener);
+
             return true;
         }
 
