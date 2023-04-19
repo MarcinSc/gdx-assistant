@@ -1,4 +1,4 @@
-package com.gempukku.gdx.plugins.jar;
+package com.gempukku.gdx.plugins.provider.jar;
 
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.files.FileHandle;

@@ -1,11 +1,10 @@
-package com.gempukku.gdx.plugins.jar;
+package com.gempukku.gdx.plugins.provider.jar;
 
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.gempukku.gdx.plugins.Plugin;
-import com.gempukku.gdx.plugins.PluginsProvider;
+import com.gempukku.gdx.plugins.provider.PluginsProvider;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -27,6 +26,10 @@ public class JarsPluginsProvider<T, U extends Plugin<T>> implements PluginsProvi
     public JarsPluginsProvider(File pluginFolder, String classNameMainAttribute) {
         this.pluginFolder = pluginFolder;
         this.classNameMainAttribute = classNameMainAttribute;
+    }
+
+    public void addPlugin(U plugin) {
+        plugins.add(plugin);
     }
 
     @Override

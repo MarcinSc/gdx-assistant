@@ -1,5 +1,7 @@
 package com.gempukku.gdx.plugins;
 
+import com.gempukku.gdx.plugins.provider.PluginsProvider;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

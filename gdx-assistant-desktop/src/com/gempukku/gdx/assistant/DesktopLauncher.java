@@ -4,7 +4,8 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.gempukku.gdx.assistant.plugin.AssistantApplication;
 import com.gempukku.gdx.assistant.plugin.AssistantPlugin;
-import com.gempukku.gdx.plugins.jar.JarsPluginsProvider;
+import com.gempukku.gdx.assistant.plugin.atlas.AssistantTextureAtlasPlugin;
+import com.gempukku.gdx.plugins.provider.jar.JarsPluginsProvider;
 
 import java.io.File;
 
@@ -17,6 +18,7 @@ public class DesktopLauncher {
         config.setTitle("Gdx Assistant");
 
         JarsPluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider = new JarsPluginsProvider<>(new File("plugins"), "Gdx-Assistant-Plugin");
+        pluginsProvider.addPlugin(new AssistantTextureAtlasPlugin());
 
         new Lwjgl3Application(new GdxAssistant(pluginsProvider), config);
     }

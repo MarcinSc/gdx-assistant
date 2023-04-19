@@ -7,7 +7,7 @@ import com.badlogic.gdx.utils.ObjectMap;
 import com.gempukku.gdx.assistant.plugin.AssistantApplication;
 import com.gempukku.gdx.assistant.plugin.AssistantPlugin;
 import com.gempukku.gdx.assistant.plugin.AssistantPluginProject;
-import com.gempukku.gdx.plugins.PluginsProvider;
+import com.gempukku.gdx.plugins.provider.PluginsProvider;
 
 public class AssistantProject {
     private ObjectMap<String, AssistantPluginProject> pluginProjects = new ObjectMap<>();

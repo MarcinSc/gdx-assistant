@@ -1,6 +1,7 @@
-package com.gempukku.gdx.plugins;
+package com.gempukku.gdx.plugins.provider;
 
 import com.badlogic.gdx.Files;
+import com.gempukku.gdx.plugins.Plugin;
 
 /**
  * @param <T> Type of the pluggable application, that allows Plugins to make calls on it.

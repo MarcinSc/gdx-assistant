@@ -1,6 +1,5 @@
-package com.gempukku.gdx.plugins.jar;
+package com.gempukku.gdx.plugins.provider.jar;
 
-import com.badlogic.gdx.Files;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
@@ -117,21 +116,21 @@ public class URLFileHandle extends FileHandle {
     @Override
     public FileHandle child(String name) {
         FileHandle delegate = this.delegate.child(name);
-        URL url = classLoader.getResource(delegate.name());
+        URL url = classLoader.getResource(delegate.path());
         return new URLFileHandle(classLoader, delegate, url);
     }
 
     @Override
     public FileHandle sibling(String name) {
         FileHandle delegate = this.delegate.sibling(name);
-        URL url = classLoader.getResource(delegate.name());
+        URL url = classLoader.getResource(delegate.path());
         return new URLFileHandle(classLoader, delegate, url);
     }
 
     @Override
     public FileHandle parent() {
         FileHandle delegate = this.delegate.parent();
-        URL url = classLoader.getResource(delegate.name());
+        URL url = classLoader.getResource(delegate.path());
         return new URLFileHandle(classLoader, delegate, url);
     }
 
