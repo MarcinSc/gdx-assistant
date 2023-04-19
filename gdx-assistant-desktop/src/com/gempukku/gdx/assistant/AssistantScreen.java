@@ -13,6 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.*;
 import com.gempukku.gdx.assistant.plugin.*;
 import com.gempukku.gdx.plugins.PluginsProvider;
+import com.gempukku.libgdx.common.undo.UndoManager;
 import com.gempukku.libgdx.ui.input.KeyCombination;
 import com.gempukku.libgdx.ui.tabbedpane.GTabbedPane;
 import com.kotcrab.vis.ui.util.dialog.Dialogs;

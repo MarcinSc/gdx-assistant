@@ -1,8 +1,8 @@
 package com.gempukku.gdx.assistant;
 
 import com.badlogic.gdx.utils.Array;
-import com.gempukku.gdx.assistant.plugin.UndoManager;
-import com.gempukku.gdx.assistant.plugin.UndoableAction;
+import com.gempukku.libgdx.common.undo.UndoManager;
+import com.gempukku.libgdx.common.undo.UndoableAction;
 import com.kotcrab.vis.ui.widget.MenuItem;
 
 public class AssistantUndoManager implements UndoManager {
