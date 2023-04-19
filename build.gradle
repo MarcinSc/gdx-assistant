@@ -7,7 +7,7 @@ buildscript {
         google()
     }
     dependencies {
-
+        classpath "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
     }
 }
 
@@ -18,6 +18,10 @@ allprojects {
     ext {
         appName = "Gdx Assistant"
     }
+
+    ext.texturePacker = [
+            "$projectDir/atlas/gdx-assistant", "$projectDir/assets/skin/gdx-assistant", "uiskin"
+    ]
 
     repositories {
         mavenLocal()

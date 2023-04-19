@@ -2,26 +2,27 @@ package com.gempukku.gdx.assistant;
 
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.gempukku.gdx.assistant.plugin.AssistantApplication;
 import com.gempukku.gdx.assistant.plugin.AssistantPluginTab;
 import com.gempukku.libgdx.ui.tabbedpane.GDirtyTab;
-import com.gempukku.libgdx.ui.tabbedpane.GDirtyTabLabel;
+import com.gempukku.libgdx.ui.tabbedpane.GDirtyTabIconLabel;
 import com.gempukku.libgdx.ui.tabbedpane.GTabControl;
 import com.kotcrab.vis.ui.util.dialog.ConfirmDialogListener;
 import com.kotcrab.vis.ui.util.dialog.Dialogs;
 
 public class AssistantTabFromPlugin implements GDirtyTab {
-    private final GDirtyTabLabel<AssistantTabFromPlugin> tabActor;
+    private final GDirtyTabIconLabel<AssistantTabFromPlugin> tabActor;
     private GTabControl<AssistantTabFromPlugin> tabControl;
     private final Table content;
     private final AssistantPluginTab tab;
 
     public AssistantTabFromPlugin(AssistantApplication assistantApplication, AssistantProject assistantProject,
-                                  GTabControl<AssistantTabFromPlugin> tabControl, String title, Table content, AssistantPluginTab tab) {
+                                  GTabControl<AssistantTabFromPlugin> tabControl, String title, Drawable icon, Table content, AssistantPluginTab tab) {
         this.tabControl = tabControl;
         this.content = content;
         this.tab = tab;
-        tabActor = new GDirtyTabLabel<>(tabControl, this, "default", title, true,
+        tabActor = new GDirtyTabIconLabel<>(tabControl, this, "default", title, icon, true,
                 new Runnable() {
                     @Override
                     public void run() {

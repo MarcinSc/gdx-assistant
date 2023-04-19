@@ -111,6 +111,14 @@
       "checked": "button-down",
       "down": "button-down",
       "up": "button"
+    },
+    "assistant-tab": {
+      "up": "assistant-tab",
+      "down": "assistant-tab-active",
+      "over": "assistant-tab-over",
+      "checked": "assistant-tab-active",
+      "checkedOver": "assistant-tab-active",
+      "checkedDown": "assistant-tab-active"
     }
   },
   "com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle": {
@@ -280,6 +288,14 @@
   },
   "com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle": {
     "default": {
+      "font": "default-font",
+      "fontColor": "white"
+    },
+    "assistant-tab-text": {
+      "font": "default-font",
+      "fontColor": "white"
+    },
+    "assistant-tab-text-active": {
       "font": "default-font",
       "fontColor": "white"
     },
@@ -489,6 +505,16 @@
       "over": "button-over",
       "disabled": "button",
       "focusBorder": "border"
+    },
+    "assistant-tab-close": {
+      "up": "assistant-tab-close",
+      "down": "assistant-tab-close-over",
+      "over": "assistant-tab-close-over"
+    },
+    "assistant-tab-close-active": {
+      "up": "assistant-tab-close",
+      "down": "assistant-tab-close-over",
+      "over": "assistant-tab-close-over"
     },
     "blue": {
       "down": "button-blue-down",
@@ -892,16 +918,17 @@
       "selection": "list-selection"
     }
   },
-  "com.gempukku.libgdx.ui.tabbedpane.GDirtyTabLabel$GDirtyTabLabelStyle": {
+  "com.gempukku.libgdx.ui.tabbedpane.GDirtyTabIconLabel$GDirtyTabImageLabelStyle": {
     "default": {
-      "textMaxWidth": 150,
-      "textMaxWidthActive": 150,
-      "background": "tab-label",
-      "backgroundActive": "tab-label-blue",
-      "textStyle": "dirty-tab-label-clean",
-      "dirtyTextStyle": "dirty-tab-label-dirty",
-      "closeStyle": "close-tab",
-      "closeStyleActive": "close-active-tab"
+      "buttonStyle": "assistant-tab",
+      "dirty":"assistant-tab-dirty",
+      "clean":"assistant-tab-clean",
+      "textMaxWidth": 80,
+      "activeTextMaxWidth": 120,
+      "textStyle": "assistant-tab-text",
+      "activeTextStyle": "assistant-tab-text-active",
+      "closeStyle": "assistant-tab-close",
+      "activeCloseStyle": "assistant-tab-close-active"
     }
   }
 }

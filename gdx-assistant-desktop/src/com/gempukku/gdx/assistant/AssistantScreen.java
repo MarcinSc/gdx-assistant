@@ -10,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.JsonWriter;
@@ -371,8 +372,8 @@ public class AssistantScreen extends VisTable {
         }
     }
 
-    private void addTab(AssistantApplication assistantApplication, String title, Table content, AssistantPluginTab tab) {
-        tabbedPane.addTab(new AssistantTabFromPlugin(assistantApplication, currentProject, tabbedPane, title, content, tab));
+    private void addTab(AssistantApplication assistantApplication, String title, Drawable icon, Table content, AssistantPluginTab tab) {
+        tabbedPane.addTab(new AssistantTabFromPlugin(assistantApplication, currentProject, tabbedPane, title, icon, content, tab));
     }
 
     private boolean isActiveTab(AssistantPluginTab tab) {
@@ -542,7 +543,12 @@ public class AssistantScreen extends VisTable {
 
         @Override
         public void addTab(String title, Table content, AssistantPluginTab tab) {
-            AssistantScreen.this.addTab(application, title, content, tab);
+            addTab(title, null, content, tab);
+        }
+
+        @Override
+        public void addTab(String title, Drawable icon, Table content, AssistantPluginTab tab) {
+            AssistantScreen.this.addTab(application, title, icon, content, tab);
         }
 
         @Override
