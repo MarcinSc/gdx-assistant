@@ -672,6 +672,7 @@ public class AssistantScreen extends VisTable {
                                     listener.run();
                             }
                         });
+                menuItem.setShortcut(keyCombination.getShortCutRepresentation());
             }
             menuItems.put(key, menuItem);
             listeners.put(key, runnable);
