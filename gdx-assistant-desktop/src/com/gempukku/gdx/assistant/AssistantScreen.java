@@ -6,15 +6,13 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.JsonValue;
-import com.badlogic.gdx.utils.JsonWriter;
-import com.badlogic.gdx.utils.ObjectMap;
+import com.badlogic.gdx.utils.*;
 import com.gempukku.gdx.assistant.plugin.*;
 import com.gempukku.gdx.plugins.provider.PluginsProvider;
 import com.gempukku.libgdx.common.undo.UndoManager;
@@ -71,7 +69,8 @@ public class AssistantScreen extends VisTable {
         assistantProjectsFilter = new FileTypeFilter(true);
         assistantProjectsFilter.addRule("Gdx assistant project (*.assp)", projectFileExtension);
 
-        tabbedPane = new GTabbedPane<>();
+        Image image = new Image(skin.getDrawable("gempukku-logo"), Scaling.none);
+        tabbedPane = new GTabbedPane<>(image);
 
         menuBar = createMenuBar();
 
