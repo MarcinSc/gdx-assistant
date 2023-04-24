@@ -375,11 +375,15 @@ public class AssistantScreen extends VisTable {
         tabbedPane.addTab(new AssistantTabFromPlugin(assistantApplication, currentProject, tabbedPane, title, icon, content, tab));
     }
 
-    private boolean isActiveTab(AssistantPluginTab tab) {
+    private AssistantPluginTab getActiveTab() {
         AssistantTabFromPlugin activeTab = tabbedPane.getActiveTab();
         if (activeTab == null)
-            return false;
-        return activeTab.getTab() == tab;
+            return null;
+        return activeTab.getTab();
+    }
+
+    private boolean isActiveTab(AssistantPluginTab tab) {
+        return getActiveTab() == tab;
     }
 
     private void switchToTab(AssistantPluginTab tab) {
@@ -548,6 +552,11 @@ public class AssistantScreen extends VisTable {
         @Override
         public void addTab(String title, Drawable icon, Table content, AssistantPluginTab tab) {
             AssistantScreen.this.addTab(application, title, icon, content, tab);
+        }
+
+        @Override
+        public AssistantPluginTab getActiveTab() {
+            return AssistantScreen.this.getActiveTab();
         }
 
         @Override

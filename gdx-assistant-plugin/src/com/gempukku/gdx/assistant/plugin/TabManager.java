@@ -8,6 +8,8 @@ public interface TabManager {
 
     void addTab(String title, Drawable icon, Table content, AssistantPluginTab tab);
 
+    AssistantPluginTab getActiveTab();
+
     boolean isActiveTab(AssistantPluginTab tab);
 
     void switchToTab(AssistantPluginTab tab);
