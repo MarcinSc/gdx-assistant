@@ -15,9 +15,10 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.*;
 import com.gempukku.gdx.assistant.plugin.*;
 import com.gempukku.gdx.plugins.provider.PluginsProvider;
-import com.gempukku.libgdx.common.undo.UndoManager;
 import com.gempukku.libgdx.ui.input.KeyCombination;
 import com.gempukku.libgdx.ui.tabbedpane.GTabbedPane;
+import com.gempukku.libgdx.undo.DefaultUndoManager;
+import com.gempukku.libgdx.undo.UndoManager;
 import com.kotcrab.vis.ui.util.dialog.Dialogs;
 import com.kotcrab.vis.ui.util.dialog.OptionDialogListener;
 import com.kotcrab.vis.ui.widget.*;
@@ -34,7 +35,7 @@ public class AssistantScreen extends VisTable {
 
     private final AssistantPreferences assistantPreferences;
     private final FileTypeFilter assistantProjectsFilter;
-    private final AssistantUndoManager assistantUndoManager;
+    private final DefaultUndoManager assistantUndoManager;
 
     private final PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider;
     private final Skin skin;
@@ -95,13 +96,16 @@ public class AssistantScreen extends VisTable {
                     }
                 });
 
-        assistantUndoManager = new AssistantUndoManager(undoMenuItem, redoMenuItem);
+        assistantUndoManager = new DefaultUndoManager();
     }
 
     @Override
     public void act(float delta) {
         super.act(delta);
-        assistantUndoManager.update();
+        undoMenuItem.setDisabled(!assistantUndoManager.canUndo());
+        redoMenuItem.setDisabled(!assistantUndoManager.canRedo());
+        undoMenuItem.setText(assistantUndoManager.getUndoText());
+        redoMenuItem.setText(assistantUndoManager.getRedoText());
     }
 
     private void undo() {
