@@ -1,5 +1,3 @@
-apply plugin: "java-library"
-
 sourceSets.main.resources.srcDirs = ["assets"]
 
 project.ext.mainClassName = "com.gempukku.gdx.assistant.DesktopLauncher"

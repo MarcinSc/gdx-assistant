@@ -36,6 +36,7 @@ allprojects {
 
 configure(subprojects) {
     apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "maven-publish"
 
     sourceCompatibility = 1.8
@@ -46,5 +47,16 @@ configure(subprojects) {
     java {
         withSourcesJar()
         withJavadocJar()
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                groupId project.group
+                artifactId project.name
+                version project.version
+                from components.java
+            }
+        }
     }
 }
