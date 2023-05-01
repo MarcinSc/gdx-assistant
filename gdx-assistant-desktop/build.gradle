@@ -1,11 +1,9 @@
 apply plugin: "java-library"
 
-sourceCompatibility = 1.8
 sourceSets.main.resources.srcDirs = ["assets"]
 
 project.ext.mainClassName = "com.gempukku.gdx.assistant.DesktopLauncher"
 project.ext.assetsDir = new File("assets")
-
 
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.tools.texturepacker.TexturePacker
