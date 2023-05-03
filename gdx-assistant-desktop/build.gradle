@@ -23,15 +23,18 @@ def assistantPlugins = [
         "https://jitpack.io/com/github/MarcinSc/gdx-graph/gdx-graph-assistant/${gdxGraphVersion}/gdx-graph-assistant-${gdxGraphVersion}.jar"
 ]
 
-build {
-    def folder = new File("plugins");
-    folder.mkdirs();
+classes {
+    doLast {
+        def folder = new File("plugins");
+        folder.mkdirs();
+        println("Checking plugins")
 
-    for (def assPlugin : assistantPlugins) {
-        def f = new File("plugins/" + assPlugin.substring(assPlugin.lastIndexOf("/") + 1));
-        if (!f.exists()) {
-            println("Downloading plugin: " + assPlugin);
-            new URL(assPlugin).withInputStream { i -> f.withOutputStream { it << i } }
+        for (def assPlugin : assistantPlugins) {
+            def f = new File("plugins/" + assPlugin.substring(assPlugin.lastIndexOf("/") + 1))
+            if (!f.exists()) {
+                println("Downloading plugin: " + assPlugin)
+                new URL(assPlugin).withInputStream { i -> f.withOutputStream { it << i } }
+            }
         }
     }
 }
