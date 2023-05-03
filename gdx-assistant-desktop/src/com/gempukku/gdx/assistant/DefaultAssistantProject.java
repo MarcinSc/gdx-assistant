@@ -1,6 +1,5 @@
 package com.gempukku.gdx.assistant;
 
-import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
@@ -15,14 +14,12 @@ public class DefaultAssistantProject implements AssistantProject {
     private FileHandle projectFile;
     private String projectName;
     private String assetPath;
-    private FileHandleResolver assetResolver;
     private ObjectMap<String, AssistantPluginProject> pluginProjects = new ObjectMap<>();
 
     public void newProjectCreated(FileHandle projectFile, String projectName, String assetPath, PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider) {
         this.projectFile = projectFile;
         this.projectName = projectName;
         this.assetPath = assetPath;
-        this.assetResolver = new AssetResovler();
 
         for (AssistantPlugin plugin : pluginsProvider.getPlugins()) {
             AssistantPluginProject pluginProject = plugin.newProjectCreated(this);
@@ -37,7 +34,6 @@ public class DefaultAssistantProject implements AssistantProject {
         this.projectFile = projectFile;
         this.assetPath = parsedProject.getString("assetPath", "core/assets");
         this.projectName = parsedProject.getString("name", "Unnamed");
-        this.assetResolver = new AssetResovler();
 
         JsonValue pluginsData = parsedProject.get("pluginsData");
         for (AssistantPlugin plugin : pluginsProvider.getPlugins()) {
@@ -60,12 +56,9 @@ public class DefaultAssistantProject implements AssistantProject {
         return projectFile.parent();
     }
 
+    @Override
     public FileHandle getAssetFolder() {
         return projectFile.sibling(assetPath);
-    }
-
-    public FileHandleResolver getAssetResolver() {
-        return assetResolver;
     }
 
     public boolean isDirty() {
@@ -107,13 +100,6 @@ public class DefaultAssistantProject implements AssistantProject {
     public void processUpdate(float deltaTime) {
         for (AssistantPluginProject pluginProject : pluginProjects.values()) {
             pluginProject.processUpdate(deltaTime);
-        }
-    }
-
-    private class AssetResovler implements FileHandleResolver {
-        @Override
-        public FileHandle resolve(String fileName) {
-            return getAssetFolder().child(fileName);
         }
     }
 }

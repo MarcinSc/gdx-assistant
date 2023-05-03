@@ -2,6 +2,8 @@ package com.gempukku.gdx.assistant;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.assets.loaders.FileHandleResolver;
+import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -34,6 +36,7 @@ public class AssistantScreen extends VisTable {
 
     private final AssistantPreferences assistantPreferences;
     private final DefaultUndoManager assistantUndoManager;
+    private final FileHandleResolver assetResolver;
 
     private final PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider;
     private final Skin skin;
@@ -60,6 +63,8 @@ public class AssistantScreen extends VisTable {
 
     public AssistantScreen(PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider, Skin skin) {
         assistantPreferences = new AssistantPreferences(Gdx.app.getPreferences("gdx-assistant.preferences"));
+
+        assetResolver = new InternalFileHandleResolver();
 
         this.pluginsProvider = pluginsProvider;
         this.skin = skin;
@@ -502,6 +507,11 @@ public class AssistantScreen extends VisTable {
         @Override
         public UndoManager getUndoManager() {
             return assistantUndoManager;
+        }
+
+        @Override
+        public FileHandleResolver getAssetResolver() {
+            return assetResolver;
         }
 
         @Override
