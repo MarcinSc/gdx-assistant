@@ -1,7 +1,5 @@
 package com.gempukku.gdx.assistant.plugin;
 
-import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.gempukku.libgdx.undo.UndoManager;
 
@@ -13,10 +11,6 @@ public interface AssistantApplication {
     StatusManager getStatusManager();
 
     UndoManager getUndoManager();
-
-    FileHandle getProjectFolder();
-
-    Skin getApplicationSkin();
 
     void addWindow(Window window);
 }

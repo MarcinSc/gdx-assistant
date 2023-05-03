@@ -24,17 +24,15 @@ import com.kotcrab.vis.ui.util.dialog.OptionDialogListener;
 import com.kotcrab.vis.ui.widget.*;
 import com.kotcrab.vis.ui.widget.file.FileChooser;
 import com.kotcrab.vis.ui.widget.file.FileChooserAdapter;
-import com.kotcrab.vis.ui.widget.file.FileTypeFilter;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.List;
 
 public class AssistantScreen extends VisTable {
-    private static final String projectFileExtension = "assp";
+    private static final String projectFileName = "assistant-project.assp";
 
     private final AssistantPreferences assistantPreferences;
-    private final FileTypeFilter assistantProjectsFilter;
     private final DefaultUndoManager assistantUndoManager;
 
     private final PluginsProvider<AssistantApplication, AssistantPlugin> pluginsProvider;
@@ -46,8 +44,7 @@ public class AssistantScreen extends VisTable {
 
     private ObjectMap<KeyCombination, Runnable> shortcuts = new ObjectMap<>();
 
-    private AssistantProject currentProject;
-    private FileHandle projectFile;
+    private DefaultAssistantProject currentProject;
 
     // File menu
     private MenuItem newMenuItem;
@@ -66,9 +63,6 @@ public class AssistantScreen extends VisTable {
 
         this.pluginsProvider = pluginsProvider;
         this.skin = skin;
-
-        assistantProjectsFilter = new FileTypeFilter(true);
-        assistantProjectsFilter.addRule("Gdx assistant project (*.assp)", projectFileExtension);
 
         Image image = new Image(skin.getDrawable("gempukku-logo"), Scaling.none);
         tabbedPane = new GTabbedPane<>(image);
@@ -114,16 +108,6 @@ public class AssistantScreen extends VisTable {
 
     private void redo() {
         assistantUndoManager.redo();
-    }
-
-    private FileHandle getProjectFolder() {
-        if (projectFile == null)
-            return null;
-        return projectFile.parent();
-    }
-
-    private Skin getApplicationSkin() {
-        return skin;
     }
 
     private MenuBar createMenuBar() {
@@ -253,17 +237,20 @@ public class AssistantScreen extends VisTable {
         PopupMenu popupMenu = recentProjectsMenuItem.getSubMenu();
         popupMenu.clearChildren();
 
-        List<FileHandle> recentProjectList = assistantPreferences.getRecentProjects();
-        if (recentProjectList.isEmpty()) {
+        List<FileHandle> recentProjectFolders = assistantPreferences.getRecentProjectFolders();
+        List<String> recentProjectNames = assistantPreferences.getRecentProjectNames();
+        if (recentProjectFolders.isEmpty()) {
             recentProjectsMenuItem.setDisabled(true);
         } else {
-            for (FileHandle fileHandle : recentProjectList) {
-                MenuItem recentProject = new MenuItem(fileHandle.name());
+            for (int i=0; i<recentProjectFolders.size(); i++) {
+                FileHandle projectFolder = recentProjectFolders.get(i);
+                String projectName = recentProjectNames.get(i);
+                MenuItem recentProject = new MenuItem(projectName);
                 recentProject.addListener(
                         new ChangeListener() {
                             @Override
                             public void changed(ChangeEvent event, Actor actor) {
-                                openProject(fileHandle);
+                                openProject(projectFolder);
                             }
                         });
                 popupMenu.addItem(recentProject);
@@ -290,29 +277,24 @@ public class AssistantScreen extends VisTable {
         } else {
             closeProject();
 
-            FileChooser fileChooser = new FileChooser(FileChooser.Mode.SAVE);
-            fileChooser.setFileTypeFilter(assistantProjectsFilter);
-            fileChooser.setModal(true);
-            fileChooser.setSelectionMode(FileChooser.SelectionMode.FILES);
-            fileChooser.setListener(new FileChooserAdapter() {
-                @Override
-                public void selected(Array<FileHandle> file) {
-                    currentProject = new AssistantProject();
-                    currentProject.newProjectCreated(pluginsProvider);
+            CreateNewProjectDialog dialog = new CreateNewProjectDialog(projectFileName);
+            dialog.setProjectListener(
+                    new CreateNewProjectDialog.ProjectListener() {
+                        public void projectCreated(String projectName, FileHandle projectFolder, String assetsPath) {
+                            FileHandle projectFile = projectFolder.child(projectFileName);
 
-                    saveMenuItem.setDisabled(false);
-                    closeMenuItem.setDisabled(false);
+                            currentProject = new DefaultAssistantProject();
+                            currentProject.newProjectCreated(projectFile, projectName, assetsPath, pluginsProvider);
 
-                    FileHandle selectedFile = file.get(0);
-                    if (!selectedFile.name().toLowerCase().endsWith("." + projectFileExtension)) {
-                        selectedFile = selectedFile.parent().child(selectedFile.name() + "." + projectFileExtension);
-                    }
+                            saveMenuItem.setDisabled(false);
+                            closeMenuItem.setDisabled(false);
 
-                    saveProjectToFile(selectedFile);
-                    setProjectFile(selectedFile);
-                }
-            });
-            getStage().addActor(fileChooser.fadeIn());
+                            saveProjectToFile();
+                            setProjectFile();
+                        }
+                    });
+
+            getStage().addActor(dialog.fadeIn());
         }
     }
 
@@ -323,18 +305,18 @@ public class AssistantScreen extends VisTable {
             closeProject();
 
             FileChooser fileChooser = new FileChooser(FileChooser.Mode.OPEN);
-            fileChooser.setFileTypeFilter(assistantProjectsFilter);
             fileChooser.setModal(true);
-            fileChooser.setSelectionMode(FileChooser.SelectionMode.FILES);
+            fileChooser.setSelectionMode(FileChooser.SelectionMode.DIRECTORIES);
             fileChooser.setListener(new FileChooserAdapter() {
                 @Override
                 public void selected(Array<FileHandle> file) {
-                    FileHandle selectedFile = file.get(0);
+                    FileHandle projectFolder = file.get(0);
+                    FileHandle projectFile = projectFolder.child(projectFileName);
 
-                    currentProject = new AssistantProject();
-                    currentProject.openProject(selectedFile, pluginsProvider);
+                    currentProject = new DefaultAssistantProject();
+                    currentProject.openProject(projectFile, pluginsProvider);
 
-                    setProjectFile(selectedFile);
+                    setProjectFile();
 
                     saveMenuItem.setDisabled(false);
                     closeMenuItem.setDisabled(false);
@@ -344,15 +326,16 @@ public class AssistantScreen extends VisTable {
         }
     }
 
-    private void openProject(FileHandle project) {
+    private void openProject(FileHandle projectFolder) {
         if (currentProject != null && currentProject.isDirty()) {
             Dialogs.showErrorDialog(getStage(), "Current project has been modified, close it or save it");
         } else {
             closeProject();
 
-            currentProject = new AssistantProject();
-            setProjectFile(project);
-            currentProject.openProject(project, pluginsProvider);
+            currentProject = new DefaultAssistantProject();
+            currentProject.openProject(projectFolder.child(projectFileName), pluginsProvider);
+
+            setProjectFile();
 
             saveMenuItem.setDisabled(false);
             closeMenuItem.setDisabled(false);
@@ -361,14 +344,14 @@ public class AssistantScreen extends VisTable {
 
     private void saveProject() {
         if (currentProject != null) {
-            saveProjectToFile(projectFile);
+            saveProjectToFile();
         }
     }
 
-    private void saveProjectToFile(FileHandle file) {
+    private void saveProjectToFile() {
         JsonValue result = currentProject.saveProject();
         try {
-            writeJson(file, result);
+            writeJson(currentProject.getProjectFile(), result);
             currentProject.markSaved();
         } catch (IOException exp) {
             exp.printStackTrace();
@@ -467,12 +450,11 @@ public class AssistantScreen extends VisTable {
         }
     }
 
-    private void setProjectFile(FileHandle file) {
-        projectFile = file;
-        assistantPreferences.addRecentProject(file);
-        assistantPreferences.setOpenedProject(file);
+    private void setProjectFile() {
+        assistantPreferences.addRecentProject(currentProject.getProjectName(), currentProject.getProjectFolder());
+        assistantPreferences.setOpenedProject(currentProject.getProjectName(), currentProject.getProjectFolder());
         rebuildRecentProjectsMenu();
-        Gdx.graphics.setTitle("Gdx Assistant - " + file.name());
+        Gdx.graphics.setTitle("Gdx Assistant - " + currentProject.getProjectName());
     }
 
     private void doCloseTheProject() {
@@ -481,8 +463,7 @@ public class AssistantScreen extends VisTable {
         }
 
         currentProject = null;
-        projectFile = null;
-        assistantPreferences.setOpenedProject(null);
+        assistantPreferences.setOpenedProject(null, null);
         Gdx.graphics.setTitle("Gdx Assistant");
     }
 
@@ -521,16 +502,6 @@ public class AssistantScreen extends VisTable {
         @Override
         public UndoManager getUndoManager() {
             return assistantUndoManager;
-        }
-
-        @Override
-        public FileHandle getProjectFolder() {
-            return AssistantScreen.this.getProjectFolder();
-        }
-
-        @Override
-        public Skin getApplicationSkin() {
-            return AssistantScreen.this.getApplicationSkin();
         }
 
         @Override

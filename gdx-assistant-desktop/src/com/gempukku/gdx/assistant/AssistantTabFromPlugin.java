@@ -17,7 +17,7 @@ public class AssistantTabFromPlugin implements GDirtyTab {
     private final Table content;
     private final AssistantPluginTab tab;
 
-    public AssistantTabFromPlugin(AssistantApplication assistantApplication, AssistantProject assistantProject,
+    public AssistantTabFromPlugin(AssistantApplication assistantApplication, DefaultAssistantProject assistantProject,
                                   GTabControl<AssistantTabFromPlugin> tabControl, String title, Drawable icon, Table content, AssistantPluginTab tab) {
         this.tabControl = tabControl;
         this.content = content;
@@ -31,7 +31,7 @@ public class AssistantTabFromPlugin implements GDirtyTab {
                 });
     }
 
-    private void processClose(AssistantApplication assistantApplication, AssistantProject assistantProject) {
+    private void processClose(AssistantApplication assistantApplication, DefaultAssistantProject assistantProject) {
         if (isDirty()) {
             Dialogs.ConfirmDialog<String> confirmDialog = new Dialogs.ConfirmDialog<>(
                     "Confirm close", "Contents of this tab have been modified, would you like to save the project?",

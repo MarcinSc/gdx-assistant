@@ -1,0 +1,7 @@
+{
+"name": "gdx-assistant",
+"assetPath": "gdx-assistant-desktop/assets",
+"pluginsData": {
+	"testPlugin": {}
+}
+}

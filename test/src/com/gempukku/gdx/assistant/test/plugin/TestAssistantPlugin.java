@@ -10,12 +10,12 @@ public class TestAssistantPlugin implements AssistantPlugin {
     private AssistantApplication application;
 
     @Override
-    public AssistantPluginProject newProjectCreated() {
+    public AssistantPluginProject newProjectCreated(AssistantProject assistantProject) {
         return new TestAssistantPluginProject(application);
     }
 
     @Override
-    public AssistantPluginProject projectOpened(JsonValue pluginData) {
+    public AssistantPluginProject projectOpened(AssistantProject assistantProject, JsonValue pluginData) {
         return new TestAssistantPluginProject(application, pluginData);
     }
 

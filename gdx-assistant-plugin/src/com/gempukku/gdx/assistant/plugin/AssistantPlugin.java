@@ -4,6 +4,6 @@ import com.badlogic.gdx.utils.JsonValue;
 import com.gempukku.gdx.plugins.Plugin;
 
 public interface AssistantPlugin extends Plugin<AssistantApplication> {
-    AssistantPluginProject newProjectCreated();
-    AssistantPluginProject projectOpened(JsonValue pluginData);
+    AssistantPluginProject newProjectCreated(AssistantProject assistantProject);
+    AssistantPluginProject projectOpened(AssistantProject assistantProject, JsonValue pluginData);
 }

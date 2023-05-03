@@ -1,7 +1,6 @@
 apply plugin: "java-library"
 
 sourceCompatibility = 1.8
-sourceSets.main.resources.srcDirs = ["../gdx-assistant-desktop/assets"]
 
 project.ext.mainClassName = "com.gempukku.gdx.assistant.test.TestLauncher"
 project.ext.assetsDir = new File("../gdx-assistant-desktop/assets")

@@ -10,7 +10,9 @@ import java.util.List;
 
 public class AssistantPreferences {
     private static final int maxRecentProjectsCount = 10;
+    private static final String recentProjectNameKey = "recentProjectName";
     private static final String recentProjectPathKey = "recentProjectPath";
+    private static final String openedProjectNameKey = "openedProjectName";
     private static final String openedProjectPathKey = "openedProjectPath";
 
     private Preferences preferences;
@@ -19,15 +21,18 @@ public class AssistantPreferences {
         this.preferences = preferences;
     }
 
-    public void setOpenedProject(FileHandle fileHandle) {
-        if (fileHandle != null)
-            preferences.putString(openedProjectPathKey, fileHandle.path());
-        else
+    public void setOpenedProject(String projectName, FileHandle projectFolder) {
+        if (projectName != null && projectFolder != null) {
+            preferences.putString(openedProjectPathKey, projectFolder.path());
+            preferences.putString(openedProjectNameKey, projectName);
+        } else {
             preferences.remove(openedProjectPathKey);
+            preferences.remove(openedProjectNameKey);
+        }
         preferences.flush();
     }
 
-    public List<FileHandle> getRecentProjects() {
+    public List<FileHandle> getRecentProjectFolders() {
         List<FileHandle> result = new ArrayList<>(maxRecentProjectsCount);
         for (int i = 0; i < maxRecentProjectsCount; i++) {
             String recentProject = preferences.getString(recentProjectPathKey + "[" + i + "]", null);
@@ -38,17 +43,41 @@ public class AssistantPreferences {
         return result;
     }
 
-    public void addRecentProject(FileHandle fileHandle) {
-        if (fileHandle.type() != Files.FileType.Absolute)
-            throw new IllegalArgumentException();
-        List<FileHandle> recentProjects = getRecentProjects();
-        recentProjects.remove(fileHandle);
-        recentProjects.add(0, fileHandle);
-        if (recentProjects.size() > maxRecentProjectsCount)
-            recentProjects.remove(recentProjects.size() - 1);
+    public List<String> getRecentProjectNames() {
+        List<String> result = new ArrayList<>(maxRecentProjectsCount);
+        for (int i = 0; i < maxRecentProjectsCount; i++) {
+            String recentProjectName = preferences.getString(recentProjectNameKey + "[" + i + "]", null);
+            if (recentProjectName == null)
+                break;
+            result.add(recentProjectName);
+        }
+        return result;
+    }
 
-        for (int i = 0; i < recentProjects.size(); i++) {
-            preferences.putString(recentProjectPathKey + "[" + i + "]", recentProjects.get(i).path());
+    public void addRecentProject(String projectName, FileHandle projectFolder) {
+        if (projectFolder.type() != Files.FileType.Absolute)
+            throw new IllegalArgumentException();
+
+        List<FileHandle> projectFolders = getRecentProjectFolders();
+        List<String> projectNames = getRecentProjectNames();
+
+        int index = projectFolders.indexOf(projectFolder);
+        if (index > -1) {
+            projectFolders.remove(index);
+            projectNames.remove(index);
+        }
+
+        projectFolders.add(0, projectFolder);
+        projectNames.add(0, projectName);
+
+        if (projectFolders.size() > maxRecentProjectsCount) {
+            projectFolders.remove(projectFolders.size() - 1);
+            projectNames.remove(projectNames.size() - 1);
+        }
+
+        for (int i = 0; i < projectFolders.size(); i++) {
+            preferences.putString(recentProjectPathKey + "[" + i + "]", projectFolders.get(i).path());
+            preferences.putString(recentProjectNameKey + "[" + i + "]", projectNames.get(i));
         }
         preferences.flush();
     }

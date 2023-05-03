@@ -307,6 +307,10 @@
       "font": "small-font",
       "fontColor": "white"
     },
+    "small-error": {
+      "font": "small-font",
+      "fontColor": "red"
+    },
     "menuitem-shortcut": {
       "font": "default-font",
       "fontColor": "menuitem"
