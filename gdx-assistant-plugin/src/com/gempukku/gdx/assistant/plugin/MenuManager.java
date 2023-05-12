@@ -5,7 +5,7 @@ import com.gempukku.libgdx.ui.input.KeyCombination;
 public interface MenuManager {
     boolean addMainMenu(String name);
 
-    boolean addPopupMenu(String mainMenu, String path, String name);
+    boolean addPopupMenu(String mainMenu, String popupPath, String name);
 
     boolean addMenuItem(String mainMenu, String popupPath, String name, Runnable runnable);
 
@@ -20,4 +20,8 @@ public interface MenuManager {
     boolean clearPopupMenuContents(String mainMenu, String popupPath, String name);
 
     boolean updateMenuItemListener(String mainMenu, String popupPath, String name, Runnable runnable);
+
+    boolean removeMenuItem(String mainMenu, String popupPath, String name);
+
+    boolean removePopupMenu(String mainMenu, String popupPath, String name);
 }

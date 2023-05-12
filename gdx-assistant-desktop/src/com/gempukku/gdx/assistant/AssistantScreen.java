@@ -688,6 +688,35 @@ public class AssistantScreen extends VisTable {
         }
 
         @Override
+        public boolean removeMenuItem(String mainMenu, String popupPath, String name) {
+            Menu menu = pluginMenus.get(mainMenu);
+            if (menu == null)
+                return false;
+
+            String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
+            if (!menuItems.containsKey(key))
+                return false;
+
+            menuItems.remove(key).remove();
+            listeners.remove(key);
+            return true;
+        }
+
+        @Override
+        public boolean removePopupMenu(String mainMenu, String popupPath, String name) {
+            Menu menu = pluginMenus.get(mainMenu);
+            if (menu == null)
+                return false;
+
+            String key = mainMenu + "/" + ((popupPath != null) ? popupPath + "/" : "") + name;
+            if (popupMenuItems.containsKey(key))
+                return false;
+
+            popupMenuItems.remove(key).remove();
+            return true;
+        }
+
+        @Override
         public boolean addMenuSeparator(String mainMenu, String popupPath) {
             Menu menu = pluginMenus.get(mainMenu);
             if (menu == null)
