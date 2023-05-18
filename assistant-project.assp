@@ -4,7 +4,6 @@
 "pluginsData": {
 	"gdx-graph": {
 		"graphs": [
-			{ "name": "Test shader", "graphType": "Model_Shader", "path": "test-shader.mds" }
 		]
 	},
 	"deprecation-warning": {}
