@@ -791,13 +791,16 @@ public class AssistantScreen extends VisTable {
 
         @Override
         public String addStatus(String status) {
+            if (status.indexOf('\n')>-1) {
+                status = status.substring(0, status.indexOf('\n'));
+            }
             statusBar.setText(" " + status);
             return "statusId";
         }
 
         @Override
         public void updateStatus(String statusId, String status) {
-            statusBar.setText(" " + status);
+            addStatus(status);
         }
     }
 }
