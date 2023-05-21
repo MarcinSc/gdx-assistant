@@ -791,6 +791,8 @@ public class AssistantScreen extends VisTable {
 
         @Override
         public String addStatus(String status) {
+            if (status == null)
+                status = "null";
             if (status.indexOf('\n')>-1) {
                 status = status.substring(0, status.indexOf('\n'));
             }
