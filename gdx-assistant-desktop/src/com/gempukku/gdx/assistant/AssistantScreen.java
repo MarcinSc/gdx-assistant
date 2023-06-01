@@ -316,15 +316,9 @@ public class AssistantScreen extends VisTable {
                 @Override
                 public void selected(Array<FileHandle> file) {
                     FileHandle projectFolder = file.get(0);
-                    FileHandle projectFile = projectFolder.child(projectFileName);
 
                     currentProject = new DefaultAssistantProject();
-                    currentProject.openProject(projectFile, pluginsProvider);
-
-                    setProjectFile();
-
-                    saveMenuItem.setDisabled(false);
-                    closeMenuItem.setDisabled(false);
+                    openCurrentProject(projectFolder);
                 }
             });
             getStage().addActor(fileChooser.fadeIn());
@@ -338,12 +332,21 @@ public class AssistantScreen extends VisTable {
             closeProject();
 
             currentProject = new DefaultAssistantProject();
+            openCurrentProject(projectFolder);
+        }
+    }
+
+    private void openCurrentProject(FileHandle projectFolder) {
+        try {
             currentProject.openProject(projectFolder.child(projectFileName), pluginsProvider);
 
             setProjectFile();
 
             saveMenuItem.setDisabled(false);
             closeMenuItem.setDisabled(false);
+        } catch (RuntimeException exp) {
+            currentProject = null;
+            Dialogs.showErrorDialog(getStage(), "Unable to open project");
         }
     }
 
@@ -470,6 +473,9 @@ public class AssistantScreen extends VisTable {
         currentProject = null;
         assistantPreferences.setOpenedProject(null, null);
         Gdx.graphics.setTitle("Gdx Assistant");
+
+        saveMenuItem.setDisabled(true);
+        closeMenuItem.setDisabled(true);
     }
 
     public AssistantApplication createApplicationForPlugin(AssistantPlugin assistantPlugin) {
