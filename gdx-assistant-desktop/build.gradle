@@ -20,7 +20,7 @@ dependencies {
 }
 
 def assistantPlugins = [
-        "https://jitpack.io/com/github/MarcinSc/gdx-graph/gdx-graph-assistant/${gdxGraphVersion}/gdx-graph-assistant-${gdxGraphVersion}.jar"
+        "https://github.com/MarcinSc/gdx-graph/releases/download/${gdxGraphVersion}/gdx-graph-assistant-${gdxGraphVersion}.jar"
 ]
 
 classes {
@@ -30,7 +30,7 @@ classes {
         println("Checking plugins")
 
         for (def assPlugin : assistantPlugins) {
-            def f = new File("plugins/" + assPlugin.substring(assPlugin.lastIndexOf("/") + 1))
+            def f = new File(project.rootProject.projectDir, "plugins/" + assPlugin.substring(assPlugin.lastIndexOf("/") + 1))
             if (!f.exists()) {
                 println("Downloading plugin: " + assPlugin)
                 new URL(assPlugin).withInputStream { i -> f.withOutputStream { it << i } }
