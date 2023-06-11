@@ -2,10 +2,7 @@ package com.gempukku.gdx.plugins;
 
 import com.gempukku.gdx.plugins.provider.PluginsProvider;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -16,7 +13,7 @@ public class PluginRegistration<T, U extends Plugin<T>> {
         Iterable<U> plugins = pluginsProvider.getPlugins();
 
         Map<String, U> filterLatestPlugins = filterLatestPlugins(plugins);
-        Map<String, U> chosenToRegister = new HashMap<>();
+        Map<String, U> chosenToRegister = new LinkedHashMap<>();
 
         PluginEnvironment pluginEnvironment = new PluginEnvironment() {
             @Override
