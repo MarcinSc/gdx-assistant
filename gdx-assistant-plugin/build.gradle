@@ -1,7 +1,7 @@
 dependencies {
     api project(":gdx-plugins")
 
-    api "com.github.MarcinSc.gdx-gemp-lib:gdx-gemp-ui:$gdxGempLibVersion"
+    implementation "com.github.MarcinSc.gdx-gemp-lib:gdx-gemp-ui:$gdxGempLibVersion"
     implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
 }
 
